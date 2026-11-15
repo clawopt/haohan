@@ -79,7 +79,6 @@ function collectionEntity(name: string, items: HistoryEvent[]): JsonObject {
   }
 }
 const homeCrumb = { name: '首页', path: '/' }
-const archiveCrumb = { name: '历史档案', path: '/archives/' }
 const timelineCrumb = { name: '历史年表', path: '/timeline/' }
 
 export function pageHead(page: Pick<Page, 'path' | 'title' | 'description' | 'crumbs' | 'entity' | 'noindex'>) {
@@ -116,13 +115,13 @@ function document(page: Page) {
   </head><body>
     <a className="skip" href="#content">跳到正文</a>
     <header className="archive-header"><a className="archive-brand" href="/">浩汉<small>HAO HAN / 在时间中，读懂世界</small></a>
-      <nav aria-label="主导航"><a href="/archives/">历史档案</a><a href="/timeline/">历史年表</a><a href="/people/">人物志</a><a href="/sources/">史料</a></nav></header>
+      <nav aria-label="主导航"><a href="/timeline/">历史年表</a><a href="/people/">人物志</a><a href="/sources/">史料</a></nav></header>
     <main id="content">
       {page.crumbs && <nav className="breadcrumbs" aria-label="面包屑"><ol>{page.crumbs.map((crumb, i) => <li key={crumb.path}>{i === page.crumbs!.length - 1 ? <span aria-current="page">{crumb.name}</span> : <a href={crumb.path}>{crumb.name}</a>}</li>)}</ol></nav>}
       <div className="page-intro"><span className="eyebrow">浩汉 / 历史档案</span><h1>{page.title.replace(/ · 浩汉$/, '')}</h1><p>{page.description}</p></div>
       {page.body}
     </main>
-    <footer><a href="/">返回交互历史长卷 →</a><div><a href="/about/">关于与编写原则</a><a href="/sources/">史料与纪年说明</a><a href="/archives/">全部档案</a></div>
+    <footer><a href="/">返回交互历史长卷 →</a><div><a href="/about/">关于与编写原则</a><a href="/sources/">史料与纪年说明</a></div>
       <p>以中国历史为主线，阅读同时代的世界。日期分歧、资料缺口与来源限制均保留于正文。</p></footer>
   </body></html>).replace('</head>', () => `${pageHead(page)}</head>`)
 }
@@ -134,18 +133,6 @@ export function renderHome() {
 }
 export function* staticPages(): Generator<{ path: string; html: string }> {
   const emit = (page: Page) => ({ path: page.path, html: document(page) })
-  yield emit({
-    path: '/archives/', title: '历史档案目录 · 浩汉', description: `浏览${events.length}条历史事件与${people.length}位人物档案，按年代、国家和专题寻找中国与世界历史，进入各条记录查看正文和出处。`,
-    crumbs: [homeCrumb, archiveCrumb],
-    body: <><section><h2>从时间与人物出发</h2><LinkGrid links={[
-      { name: '1937年1月逐日活动', path: monthPath(1937, 1), detail: '八国375条活动，保留日期精度与核验说明' },
-      { name: '中国与世界历史年表', path: '/timeline/', detail: '古代代表性节点、抗战大事记与同期世界' },
-      { name: '人物志', path: '/people/', detail: `${people.length}位人物的独立生平与资料出处` },
-      { name: '国家与文明', path: '/countries/', detail: '按区域阅读，区分国家、朝代与历史政权' },
-      { name: '历史专题', path: '/topics/', detail: '西安事变、抗日统一战线、战争与文化活动' },
-      { name: '史料与纪年说明', path: '/sources/', detail: '日期、来源层级、分歧与内容覆盖限制' },
-    ]} /></section><TrustNote /></>,
-  })
   yield emit({
     path: '/timeline/', title: '中国与世界历史年表 · 浩汉', description: `沿已收录的${years.length}个年份阅读中国与同期世界。古代为代表性节点，1937—1945年为全面抗战大事记，1937年1月提供八国逐日活动档案。`,
     crumbs: [homeCrumb, timelineCrumb],
@@ -266,17 +253,17 @@ export function* staticPages(): Generator<{ path: string; html: string }> {
     body: <article className="prose"><section><h2>在时间中，读懂世界</h2><p>沿着中国历史的时间长卷，阅读同一时期其他国家与文明的活动。浩汉提供交互时间轴、独立事件档案和人物生平，便于阅读、分享与核对史料。</p></section>
       <section><h2>内容编写原则</h2><p>以具体来源支持具体表述，区分事实、同期概况、观点与传闻。保留日期精度和来源限制，不为填满日期而制造事件。国家、朝代、文明及历史政权分别解释。人物生平保持独立，资料不足时明确写出缺口。</p></section>
       <section><h2>如何引用与反馈问题</h2><p>引用某项活动或人物时，使用该档案的独立网址，并一并核对正文列出的史料。遇到疑似错误，请记录档案网址、具体句子及可核验的出处，交由站点维护者复核；当前站点尚未提供公开投稿或纠错表单。</p></section>
-      <LinkGrid links={[{ name: '史料与纪年说明', path: '/sources/' }, { name: '历史档案目录', path: '/archives/' }]} />
+      <LinkGrid links={[{ name: '史料与纪年说明', path: '/sources/' }]} />
     </article>,
   })
-  yield emit({ path: '/404.html', title: '未找到这份历史档案 · 浩汉', description: '此地址没有对应的历史档案。请从档案目录或历史年表继续浏览。', noindex: true,
-    body: <><p>请检查链接是否完整，或从下方入口寻找已有内容。</p><LinkGrid links={[{ name: '历史档案目录', path: '/archives/' }, { name: '历史年表', path: '/timeline/' }, { name: '人物志', path: '/people/' }]} /></>,
+  yield emit({ path: '/404.html', title: '未找到这份历史档案 · 浩汉', description: '此地址没有对应的历史档案。请从历史年表或人物志继续浏览。', noindex: true,
+    body: <><p>请检查链接是否完整，或从下方入口寻找已有内容。</p><LinkGrid links={[{ name: '历史年表', path: '/timeline/' }, { name: '人物志', path: '/people/' }]} /></>,
   })
 }
 export function machineDocuments(paths: string[]) {
   const robots = `# Search crawlers, including AI search, may read public content.\nUser-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.filter(path => path !== '/404.html').map(path => `  <url><loc>${absoluteUrl(path).replace(/&/g, '&amp;')}</loc></url>`).join('\n')}\n</urlset>\n`
-  const llms = `# 浩汉\n\n> 以中国历史为主线，连接同时代世界的历史阅读档案。\n\n这是可选的内容导航文件，不是搜索引擎或AI搜索收录的必要条件。请以各档案页面正文和列出的原始来源为准。\n\n## 主要入口\n\n- [历史档案目录](${SITE_URL}/archives/)\n- [历史年表](${SITE_URL}/timeline/)\n- [1937年1月逐日活动](${absoluteUrl(monthPath(1937, 1))})\n- [人物志](${SITE_URL}/people/)\n- [国家与文明](${SITE_URL}/countries/)\n- [历史专题](${SITE_URL}/topics/)\n- [史料、纪年与核验说明](${SITE_URL}/sources/)\n- [关于与内容编写原则](${SITE_URL}/about/)\n- [完整文本档案](${SITE_URL}/llms-full.txt)\n- [XML站点地图](${SITE_URL}/sitemap.xml)\n\n## 引用限制\n\n历史事件日期不是网页发布日期。定日、跨日、约日、待核、月级和远古约年应按原文保留。各国日历未统一换算时区。列出出处不等于全文或多源核验；人物资料缺口及同名身份说明不能省略。空白日期不代表没有事件。AI氛围插画不是史料照片。\n`
+  const llms = `# 浩汉\n\n> 以中国历史为主线，连接同时代世界的历史阅读档案。\n\n这是可选的内容导航文件，不是搜索引擎或AI搜索收录的必要条件。请以各档案页面正文和列出的原始来源为准。\n\n## 主要入口\n\n- [历史年表](${SITE_URL}/timeline/)\n- [1937年1月逐日活动](${absoluteUrl(monthPath(1937, 1))})\n- [人物志](${SITE_URL}/people/)\n- [国家与文明](${SITE_URL}/countries/)\n- [历史专题](${SITE_URL}/topics/)\n- [史料、纪年与核验说明](${SITE_URL}/sources/)\n- [关于与内容编写原则](${SITE_URL}/about/)\n- [完整文本档案](${SITE_URL}/llms-full.txt)\n- [XML站点地图](${SITE_URL}/sitemap.xml)\n\n## 引用限制\n\n历史事件日期不是网页发布日期。定日、跨日、约日、待核、月级和远古约年应按原文保留。各国日历未统一换算时区。列出出处不等于全文或多源核验；人物资料缺口及同名身份说明不能省略。空白日期不代表没有事件。AI氛围插画不是史料照片。\n`
   const full = `${llms}\n## 历史事件\n\n${sorted(events).map(item => `### ${item.title}\n\n档案：${absoluteUrl(eventPath(item.id))}\n历史日期：${item.date}${item.precision ? `（${precisionLabel(item)}）` : ''}\n区域：${countryName(item.country, item.year)}；分类：${item.category}${item.location ? `；地点：${item.location}` : ''}\n\n${plainText(item.summary)}\n\n${plainText(item.detail)}\n${item.evidenceNote ? `\n日期与史料依据：${item.evidenceNote}\n` : ''}\n来源：\n${sourceIds(item).map(id => `- ${sources[id].name}：${sources[id].url}`).join('\n')}\n`).join('\n')}\n## 人物生平\n\n${people.map(person => `### ${person.name}\n\n档案：${absoluteUrl(personPath(person.id))}\n生卒与年代：${person.lifespan}\n身份：${person.subtitle}\n\n${plainText(person.description)}\n${person.biographyNote ? `\n资料说明：${person.biographyNote}\n` : ''}\n${person.biography?.map(section => `#### ${section.title}（${section.period}）\n\n${plainText(section.text)}\n`).join('\n') ?? person.milestones.map(item => `${item.date}：${plainText(item.text)}`).join('\n')}\n生平资料：\n${personSourceIds(person).map(id => `- ${sources[id].name}：${sources[id].url}`).join('\n')}\n`).join('\n')}`
   return { 'robots.txt': robots, 'sitemap.xml': sitemap, 'llms.txt': llms, 'llms-full.txt': full }
 }

@@ -36,15 +36,16 @@ export function yearOverviews(items: HistoryEvent[], country: CountryId, topic =
       .sort((a, b) => dateOrder(a) - dateOrder(b))
     if (!records.length) return []
     const highlights = selectHighlights(records)
-    const months = [...new Set(records.filter(item => item.archive || /年\d{1,2}月/.test(item.date)).map(item => item.month))]
+    const hasMajor = records.some(item => item.featured || !item.archive)
+    const months = [...new Set((hasMajor ? highlights : records).map(item => item.month))]
     const key = `${records[0].year}/${country}/${category}`
     const text = (topic && topicalNarratives[`${topic}/${key}`]) || annualNarratives[key]
     // New data should remain readable until its editorial overview is written,
     // without passing a list of event titles off as an annual summary.
     const title = text?.title ?? `${formatYear(records[0].year)}年的${category}脉络`
-    const summary = text?.summary ?? '本类记录的年度综述尚待补充，可沿下方事件入口阅读已收录的具体活动。'
-    const coverage = months.length === 1 ? `现有记录集中于${months[0]}月`
-      : months.length > 1 ? `已收录${months.join('、')}月的活动` : '按原文纪年收录的代表性节点'
+    const summary = text?.summary ?? '本类记录的年度大事记尚待补充，可沿“探索”阅读已收录的具体活动。'
+    const coverage = months.length === 1 ? `${hasMajor ? '关键事件' : '代表性记录'}集中于${months[0]}月`
+      : months.length > 1 ? `${hasMajor ? '关键事件' : '代表性记录'}见于${months.join('、')}月` : '按原文纪年收录的代表性节点'
     return [{ country, category, records, highlights, title, summary, coverage }]
   })
 }

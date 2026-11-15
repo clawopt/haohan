@@ -83,7 +83,7 @@ export function attachTopicTags(items: HistoryEvent[]) {
     add('full-resistance', item.country === 'china' && item.year >= 1937 && item.year <= 1945 && (item.year > 1937 || item.month >= 7))
     add('world-war', item.year <= 1945 && (item.year > 1939 || (item.year === 1939 && item.month >= 9)))
     add('before-war', item.country !== 'china' && item.year >= 1937 && (item.year < 1939 || (item.year === 1939 && item.month < 9)))
-    add('lugou', item.country === 'china' && /卢沟桥|平型关|忻口|华北/.test(item.title))
+    add('lugou', item.country === 'china' && /卢沟桥|平型关|忻口|华北抗战|华北战场|华北敌后/.test(item.title))
     add('shanghai-war', /淞沪|四行仓库/.test(item.title))
     add('nanjing-atrocity', item.title.includes('南京大屠杀'))
     add('xuzhou', /徐州|台儿庄/.test(item.title))

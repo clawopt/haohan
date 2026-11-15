@@ -2,8 +2,8 @@
 
 以中国历史为主线、同期世界为对照的交互式历史时间轴网站。
 
-- **年度大纲**：按政治、军事、经济、文化、社会、外交、战役七类，对读同一年各国概况
-- **时间轴**：年份尺支持年度大纲、全年记录与月日下钻
+- **年度大事记**：每年只记关键事件，按政治、军事、经济、文化、社会、外交、战役七类对读各国
+- **时间轴**：年份尺支持年度大事记、全年记录（逐月浏览）与月日下钻
 - **专题筛选**：按事件标签过滤，并高亮、聚焦相关年份
 - **独立档案**：事件、人物和目录拥有可直接访问的静态页面
 - **离线演示**：根目录 `浩汉-demo.html` 可直接打开，无需安装依赖
@@ -25,7 +25,7 @@ React + TypeScript + Vite。构建时预渲染首页与全部档案页，生成 
 
 - `src/data.ts`：事件、人物、来源与年代数据
 - `src/ChronicleScene.tsx`：年份尺、各国事件轴与月日下钻
-- `src/AnnualOverview.tsx`、`src/yearOverview.ts`、`src/annualNarratives.ts`：年度大纲与综述
+- `src/AnnualOverview.tsx`、`src/yearOverview.ts`、`src/annualNarratives.ts`：年度大事记与综述
 - `src/topics.ts`、`src/topicTimeline.ts`、`src/TopicPicker.tsx`：专题标签及年份联动
 - `src/seo.tsx`、`src/site.ts`、`scripts/build-seo.mjs`：静态档案、站点信息与站点地图
 - `src/styles.css`：界面样式与响应式布局

@@ -1,4 +1,5 @@
 import { januaryEntities, januaryEvents, januarySources } from './january1937'
+import { februaryEvents, februarySources } from './february1937'
 import { attachTopicTags } from './topics'
 import { biographySources, personProfiles } from './personProfiles'
 import { personBiographies, personBiographyReferences, personBiographySources } from './personBiographies'
@@ -60,6 +61,7 @@ export interface Era {
 }
 export const sources: Record<string, { name: string; url: string }> = {
   ...januarySources,
+  ...februarySources,
   ...biographySources,
   ...personBiographySources,
   ...januaryPeopleSources,
@@ -264,6 +266,7 @@ export const events: HistoryEvent[] = [
       evidenceNote: '所引纪录片解说全文明确记载1936年12月12日事变发生及通电主张；为机构网站转载的历史解说，不宣称已逐项校读同期原始文电。',
     }),
   ...januaryEvents,
+  ...februaryEvents,
   ev(1937, 'china', 7, '1937年7月7日', '卢沟桥事变', '一声枪响，全面抗战由此开始。', '[[japan|日本]]侵略军在北平西南卢沟桥附近借军事演习挑衅，以士兵失踪为借口要求进入宛平城搜查，随后发动进攻。中国守军奋起抵抗。卢沟桥事变又称七七事变，标志着全国性抗战的开始。此前，中国人民自1931年九一八事变起已开展局部抗战。', '战役', ['roc'], 'china', { image: 'bridge', featured: true }),
   ev(1937, 'china', 7, '1937年7月17日', '庐山谈话：表明抗战立场', '“地无分南北，年无分老幼。”', '[[chiang|蒋介石]]在庐山发表谈话，强调一旦战端开启，无论地域、年龄，均有守土抗战之责。谈话是在卢沟桥事变后中国社会要求全面抵抗侵略的背景下发表的，成为国民政府抗战立场的重要公开表达。', '政治', ['chiang', 'roc'], 'chronicle'),
   ev(1937, 'china', 8, '1937年8月13日—11月12日', '淞沪会战', '上海浴血三个月，打破速胜幻想。', '[[roc|国民政府]]在上海及周边地区组织大规模防御作战。中国军队与[[japan|日军]]展开持续约三个月的激战，最终中国军队撤退、上海沦陷。会战付出巨大牺牲，延缓了日军进攻，也为内地迁厂、迁校与持久抵抗争取时间。', '战役', ['roc', 'chiang'], 'chronicle', { image: 'shanghai' }),
@@ -427,7 +430,7 @@ export const events: HistoryEvent[] = [
 ]
 
 for (const item of events) {
-  if (item.year !== 1937 || item.month !== 1) continue
+  if (item.year !== 1937 || (item.month !== 1 && item.month !== 2)) continue
   const mentioned = [item.title, item.summary, item.detail].flatMap(text => personTextParts(text)
     .flatMap(part => part.personId ? [part.personId] : []))
   item.entities = [...new Set([...item.entities, ...mentioned])]

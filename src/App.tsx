@@ -173,6 +173,7 @@ export default function App() {
   const [year, setYear] = useState(1937)
   const [month, setMonth] = useState<number | null>(null)
   const [view, setView] = useState<'overview' | 'records'>('overview')
+  const [monthPinned, setMonthPinned] = useState(false)
   const [day, setDay] = useState<number | null>(null)
   const [country, setCountry] = useState<CountryId>('china')
   const [category, setCategory] = useState<'全部' | Category>('全部')
@@ -217,30 +218,59 @@ export default function App() {
   const closeOverlay = () => { setOverlay(null); setQuery('') }
   function selectEra(item: Era, newYear = item.year, nextTopic = '') {
     setEra(item); setYear(newYear); setCountry(topicTags[nextTopic]?.country ?? 'china'); setCategory('全部'); setLocatedEvent(null); setTopic(nextTopic)
-    setView('overview'); setMonth(null); setDay(null)
+    setView('overview'); setMonth(null); setDay(null); setMonthPinned(false)
   }
   function selectYear(value: number) {
     if (!navigableYears.includes(value)) return
     const found = eraForYear(value)
-    if (found) selectEra(found, value, topic)
+    if (!found) return
+    const filtered = Boolean(topic) || category !== '全部' || (monthPinned && month !== null)
+    if (filtered) {
+      // A tag or category is active: changing the year keeps the filtered
+      // detailed records instead of dropping back to the annual chronicle.
+      setEra(found); setYear(value); setLocatedEvent(null)
+      if (topic) setCountry(topicTags[topic]?.country ?? country)
+      setView('records')
+      if (monthPinned && month !== null) { setMonth(month); setDay(day) }
+      else { setMonth(firstMonthFor(value, category, topic)); setDay(null); setMonthPinned(false) }
+      return
+    }
+    selectEra(found, value, '')
   }
   function moveYear(direction: number) {
     const next = navigableYears[navigableYears.indexOf(year) + direction]
     if (next !== undefined) selectYear(next)
   }
   function selectMonth(value: number | null) {
-    setMonth(value); setView(value === null ? 'overview' : 'records')
+    setMonth(value); setView(value === null ? 'overview' : 'records'); setMonthPinned(value !== null)
     setDay(null); setLocatedEvent(null)
   }
+  function firstMonthFor(targetYear: number, targetCategory: '全部' | Category, targetTopic: string) {
+    for (let value = 1; value <= 12; value++) {
+      if (events.some(event => event.year === targetYear && event.month === value &&
+        (targetCategory === '全部' || event.category === targetCategory) &&
+        (!targetTopic || event.topicIds.includes(targetTopic)))) return value
+    }
+    return 1
+  }
+  function chooseCategory(value: '全部' | Category) {
+    setCategory(value)
+    // The annual chronicle is only the initial view; any category tab,
+    // including "全部事件", opens that year's records. A selected month stays.
+    if (view === 'overview' || month === null || !monthPinned) {
+      setMonth(firstMonthFor(year, value, topic)); setDay(null); setView('records'); setMonthPinned(false)
+    }
+    setPlaying(false)
+  }
   function exploreCategory(id: CountryId, value: Category) {
-    setView('records'); setMonth(null); setDay(null); setCountry(id); setCategory(value)
+    setView('records'); setMonth(firstMonthFor(year, value, topic)); setDay(null); setMonthPinned(false); setCountry(id); setCategory(value)
     setPlaying(false); setLocatedEvent(null)
   }
   function exploreJanuary() {
     selectMonth(1); setCategory('全部'); setCountry(topicTags[topic]?.country ?? 'china'); setPlaying(false)
   }
   function exploreYear() {
-    setView('records'); setMonth(null); setDay(null); setPlaying(false); setLocatedEvent(null)
+    setView('records'); setMonth(firstMonthFor(year, category, topic)); setDay(null); setMonthPinned(false); setPlaying(false); setLocatedEvent(null)
   }
   function toggleSaved(id: string) {
     setSaved(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])
@@ -252,7 +282,14 @@ export default function App() {
       const nextYear = nearestTopicYear(id, year)
       const nextEra = nextYear !== undefined ? eraForYear(nextYear) : undefined
       if (!nextEra || nextYear === undefined) return
+      const keepMonth = month, keepDay = day
+      const keepPinned = monthPinned && month !== null
       selectEra(nextEra, nextYear, id)
+      // A tag opens the detailed events, not the annual chronicle. Keep an
+      // explicitly chosen month; otherwise start at its first month.
+      setView('records')
+      if (keepPinned) { setMonth(keepMonth); setDay(keepDay); setMonthPinned(true) }
+      else { setMonth(firstMonthFor(nextYear, '全部', id)); setDay(null); setMonthPinned(false) }
     } else setTopic('')
     setPlaying(false); setLocatedEvent(null)
     setEntityId(null); closeOverlay()
@@ -262,7 +299,7 @@ export default function App() {
     if (!nextEra) return
     selectEra(nextEra, item.year, item.topicIds.includes(topic) ? topic : '')
     setView('records'); setCountry(item.country)
-    if (item.archive) { setMonth(item.month); setDay(eventDisplayDay(item)) }
+    if (item.archive) { setMonth(item.month); setDay(eventDisplayDay(item)); setMonthPinned(true) }
     setLocatedEvent(item.id); closeOverlay()
   }
   useEffect(() => {
@@ -276,7 +313,7 @@ export default function App() {
     if (item) {
       selectYear(item.year); setCountry(item.country)
       setView('records')
-      if (item.archive) { setMonth(item.month); setDay(eventDisplayDay(item)) }
+      if (item.archive) { setMonth(item.month); setDay(eventDisplayDay(item)); setMonthPinned(true) }
       setLocatedEvent(item.id); openEvent(item)
     } else {
       const requestedYear = Number(params.get('year'))
@@ -288,12 +325,17 @@ export default function App() {
       if (targetEra && ((params.has('year') && knownYears.includes(requestedYear)) || validTopic)) {
         selectEra(targetEra, resolvedYear, validTopic)
         const targetMonth = Number(params.get('month'))
+        const targetCategory = params.get('category') as Category | null
+        const resolvedCategory = targetCategory && ['政治', '军事', '经济', '文化', '社会', '外交', '战役'].includes(targetCategory) ? targetCategory : '全部'
         if (resolvedYear === targetYear && params.has('month') && targetMonth >= 1 && targetMonth <= 12) selectMonth(targetMonth)
-        else if (resolvedYear === targetYear && params.get('view') === 'records') setView('records')
+        else if (resolvedYear === targetYear && params.get('view') === 'records') {
+          setView('records')
+          setMonth(firstMonthFor(resolvedYear, resolvedCategory, validTopic))
+          setMonthPinned(false)
+        }
         const targetCountry = params.get('country') as CountryId | null
         if (targetCountry && countriesFor(targetEra, resolvedYear).includes(targetCountry)) setCountry(targetCountry)
-        const targetCategory = params.get('category') as Category | null
-        if (resolvedYear === targetYear && targetCategory && ['政治', '军事', '经济', '文化', '社会', '外交', '战役'].includes(targetCategory)) setCategory(targetCategory)
+        if (resolvedYear === targetYear && resolvedCategory !== '全部') setCategory(resolvedCategory)
       }
       const person = params.get('person')
       if (person) openEntity(person)
@@ -366,7 +408,6 @@ export default function App() {
           <button className="active" onClick={() => { closeOverlay(); document.querySelector('.scene-viewport')?.scrollTo({ top: 0, behavior: animated ? 'smooth' : 'instant' }) }}><BookOpen size={15} />历史长卷</button>
           <button onClick={() => { setQuery(''); setOverlay('people') }}><Users size={15} />人物志</button>
           <button onClick={() => setOverlay('saved')}><Bookmark size={14} />典藏档案{saved.length > 0 && <span className="nav-count">{saved.length}</span>}</button>
-          <a href={archiveHref('/archives/')} aria-label="浏览历史档案目录"><Globe2 size={15} />历史档案</a>
         </nav>
         <button className="search-trigger" onClick={() => setOverlay('search')}><Search size={15} /><span>搜索历史、人物</span><kbd>⌘ K</kbd></button>
         <a className="github-link" href="https://github.com/clawopt/haohan" target="_blank" rel="noreferrer"
@@ -380,8 +421,8 @@ export default function App() {
       <ChronicleScene year={year} era={era} countries={availableCountries} country={country} setCountry={setCountry}
         topic={topic} chooseTopic={openTopic}
         month={month} day={day} setMonth={selectMonth} setDay={setDay}
-        overview={view === 'overview'} exploreCategory={exploreCategory} exploreJanuary={exploreJanuary} exploreYear={exploreYear} openEvent={openEvent}
-        category={category} setCategory={setCategory} selectYear={selectYear} animated={animated} setAnimated={setAnimated}
+        overview={view === 'overview'} exploreCategory={exploreCategory} exploreJanuary={exploreJanuary} exploreYear={exploreYear}
+        category={category} setCategory={chooseCategory} selectYear={selectYear} animated={animated} setAnimated={setAnimated}
         playing={playing} setPlaying={setPlaying} blocked={Boolean(overlay || entityId)}
         openSources={() => setOverlay('sources')} locatedEvent={locatedEvent}
         renderEvent={item => <EventCard item={item} open={openEvent} openEntity={openEntity} openTopic={openTopic} saved={saved.includes(item.id)}
