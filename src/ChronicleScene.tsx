@@ -17,7 +17,7 @@ export function countryName(id: CountryId, year: number) {
   return entities[id].name
 }
 const english: Partial<Record<CountryId, string>> = {
-  china: 'CHINA', britain: 'BRITAIN', germany: 'GERMANY', japan: 'JAPAN', ussr: 'SOVIET UNION',
+  china: 'CHINA', britain: 'BRITAIN', germany: 'GERMANY', japan: 'JAPAN', korea: 'KOREA', ussr: 'SOVIET UNION',
   usa: 'UNITED STATES', france: 'FRANCE', egypt: 'ANCIENT EGYPT', greece: 'AEGEAN WORLD',
   rome: 'ROME', abbasid: 'ABBASID', ottoman: 'OTTOMAN',
 }
@@ -425,16 +425,19 @@ export default function ChronicleScene({
       <div className={`scene-viewport ${dragging ? 'is-dragging' : ''}`} ref={viewport}
         onPointerDown={startDrag} onPointerMove={pan} onPointerUp={stopDrag} onPointerCancel={stopDrag}>
         <div className="country-axis" aria-label="同期区域">
-          {visibleCountries.map((id, index) => <motion.div key={id} layout="position" ref={node => { headers.current[id] = node }}
-            transition={{ type: 'spring', stiffness: 240, damping: 29 }}
-            className={`country-heading ${id === 'china' ? 'home-country' : ''} ${country === id ? 'focused-country' : ''}`} data-country={id}>
-            <button className="country-select" onClick={() => setCountry(id)} aria-pressed={country === id}>
-              <span className="country-symbol">{id === 'china' ? <Landmark size={23} strokeWidth={1} /> : <Shield size={21} strokeWidth={1} />}</span>
-              <span><strong>{countryName(id, year)}</strong><small>{english[id]}</small></span>
-            </button>
-            <span className="country-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-            <i className="header-pin" aria-hidden="true" />
-          </motion.div>)}
+          {visibleCountries.map(id => {
+            const count = items.filter(item => item.country === id).length
+            return <motion.div key={id} layout="position" ref={node => { headers.current[id] = node }}
+              transition={{ type: 'spring', stiffness: 240, damping: 29 }}
+              className={`country-heading ${id === 'china' ? 'home-country' : ''} ${country === id ? 'focused-country' : ''}`} data-country={id}>
+              <button className="country-select" onClick={() => setCountry(id)} aria-pressed={country === id}>
+                <span className="country-symbol">{id === 'china' ? <Landmark size={23} strokeWidth={1} /> : <Shield size={21} strokeWidth={1} />}</span>
+                <span><strong>{countryName(id, year)}</strong><small>{english[id]}</small></span>
+              </button>
+              <span className="country-number" title={`${count} 条事件`}>{count}</span>
+              <i className="header-pin" aria-hidden="true" />
+            </motion.div>
+          })}
         </div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={sceneKey} className={`event-landscape ${hasDailyArchive ? 'daily-landscape' : ''}`} data-year={year} data-month={month ?? ''} data-day={day ?? ''} data-topic={topic}
@@ -487,7 +490,7 @@ export default function ChronicleScene({
           </button>
           {playing && !blocked && <motion.i key={`${year}-${day}`} className="roam-progress" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 5.5, ease: 'linear' }} />}
         </div>
-        <span className="scene-hint"><Move size={12} />拖动空白处探索 · 点击事件展开</span>
+        <span className="scene-hint"><Move size={12} />拖动空白处或横向滚动查看国家 · 点击事件展开</span>
         <div className="world-controls">
           <button className="icon-button" aria-label="向左探索文明" onClick={() => viewport.current?.scrollBy({ left: -330, behavior: animated ? 'smooth' : 'instant' })}><ChevronLeft size={13} /></button>
           <button className="icon-button" aria-label="向右探索文明" onClick={() => viewport.current?.scrollBy({ left: 330, behavior: animated ? 'smooth' : 'instant' })}><ChevronRight size={13} /></button>

@@ -8,7 +8,7 @@ import {
   Tag, Users, X,
 } from 'lucide-react'
 import {
-  countriesFor, dateOrder, entities, entityAliases, eras, eventDay, eventDisplayDay, events, formatYear, images, onDay, plainText, sources, topicLabel,
+  countriesFor, dateOrder, entities, eras, eventDay, eventDisplayDay, events, formatYear, images, onDay, personNames, personTextParts, plainText, sources, topicLabel,
 } from './data'
 import type { Category, CountryId, Entity, Era, HistoryEvent } from './data'
 import ChronicleScene, { countryName, knownYears } from './ChronicleScene'
@@ -67,9 +67,6 @@ function Modal({ children, title, close, wide = false, suspended = false, layout
   </motion.div>
 }
 
-const names: Record<string, string> = { ...Object.fromEntries(Object.values(entities).filter(item => item.type === '人物' && item.name.length >= 2).map(item => [item.name, item.id])),  ...Object.fromEntries(Object.entries(entityAliases).filter(([, id]) => entities[id]?.type === '人物')) }
-const escapedNames = Object.keys(names).sort((a, b) => b.length - a.length).map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-const pattern = new RegExp(`(${escapedNames.join('|')})`, 'g')
 // 年份切换默认进入1月；若该年没有1月记录，则进入最早有中国记录的月份。
 function defaultMonth(year: number) {
   const yearEvents = events.filter(item => item.year === year)
@@ -79,13 +76,10 @@ function defaultMonth(year: number) {
   return chinaMonths.length ? Math.min(...chinaMonths) : months.length ? Math.min(...months) : 1
 }
 function InlineText({ text, open }: { text: string; open: (id: string) => void }) {
-  return <>{text.split(/(\[\[[^\]]+\]\])/g).map((part, i) => {
-    const match = part.match(/^\[\[([^\]|]+)\|([^\]]+)\]\]$/)
-    return match ? entities[match[1]]?.type === '人物' ? <a href={`#entity-${match[1]}`} key={i} className="inline-link"
-      onClick={e => { e.preventDefault(); open(match[1]) }}>{match[2]}</a> : <span key={i}>{match[2]}</span> : <span key={i}>{part.split(pattern).map((segment, j) =>
-        names[segment] ? <a href={`#entity-${names[segment]}`} key={j} className="inline-link"
-          onClick={e => { e.preventDefault(); open(names[segment]) }}>{segment}</a> : segment)}</span>
-  })}</>
+  return <>{personTextParts(text).map((part, index) => part.personId
+    ? <a href={`#entity-${part.personId}`} key={index} className="inline-link"
+      onClick={e => { e.preventDefault(); open(part.personId!) }}>{part.text}</a>
+    : <span key={index}>{part.text}</span>)}</>
 }
 
 function EntityLink({ id, open, compact = false }: { id: string; open: (id: string) => void; compact?: boolean }) {
@@ -163,7 +157,8 @@ function EntityWindow({ entity, close }: {
       <div className="entity-identity"><div className="entity-monogram">{entity.name.replace('·', '').slice(0, 1)}</div>
         <div><span className="eyebrow">{entity.type}</span><h2>{entity.name}</h2><p>{entity.lifespan}</p></div></div>
       <p className="entity-role">{entity.subtitle}</p>
-      <p className="entity-description">{entity.description}</p>
+      {!entity.biography?.some(section => section.text === entity.description) &&
+        <p className="entity-description">{entity.description}</p>}
       {entity.biographyNote && <p className="biography-note">{entity.biographyNote}</p>}
       <div className="divider-label"><span>生平详述</span><i /></div>
       <article className="person-biography" aria-label={`${entity.name}生平详述`}>
@@ -270,7 +265,9 @@ export default function App() {
     return events.filter(item => `${item.date} ${item.title} ${item.location ?? ''} ${item.category} ${item.summary} ${plainText(item.detail)} ${item.entities.map(id => entities[id]?.name).join(' ')} ${item.topicIds.map(topicLabel).join(' ')}`.toLocaleLowerCase().includes(value))
       .sort((a, b) => a.year - b.year || dateOrder(a) - dateOrder(b)).slice(0, 60)
   }, [query])
-  const personResults = Object.values(entities).filter(item => item.type === '人物' && (!query || `${item.name}${item.subtitle}`.includes(query)))
+  const personResults = Object.values(entities).filter(item => item.type === '人物' && (!query
+    || `${item.name}${item.subtitle}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())
+    || Object.entries(personNames).some(([name, id]) => id === item.id && name.toLocaleLowerCase().includes(query.toLocaleLowerCase()))))
   const detailEvent = overlay && typeof overlay === 'object' ? overlay : null
   const detailDay = detailEvent && year === detailEvent.year && month === detailEvent.month && day && day > 0 && onDay(detailEvent, day) ? day : detailEvent ? eventDay(detailEvent) : 0
   const sameTime = detailEvent ? detailEvent.archive ? events.filter(item => item.id !== detailEvent.id && item.year === detailEvent.year && item.month === detailEvent.month &&

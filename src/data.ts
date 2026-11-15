@@ -2,11 +2,12 @@ import { januaryEntities, januaryEvents, januarySources } from './january1937'
 import { attachTopicTags } from './topics'
 import { biographySources, personProfiles } from './personProfiles'
 import { personBiographies, personBiographyReferences, personBiographySources } from './personBiographies'
+import { januaryPeople, januaryPeopleAliases, januaryPeopleSources } from './januaryPeople'
 export { topicLabel, topicTags } from './topics'
 export type { TopicTag } from './topics'
 
 export type Category = '战役' | '军事' | '政治' | '经济' | '外交' | '文化' | '社会'
-export type CountryId = 'china' | 'britain' | 'germany' | 'japan' | 'ussr' | 'usa' | 'france' | 'egypt' | 'greece' | 'rome' | 'persia' | 'abbasid' | 'ottoman'
+export type CountryId = 'china' | 'britain' | 'germany' | 'japan' | 'korea' | 'ussr' | 'usa' | 'france' | 'egypt' | 'greece' | 'rome' | 'persia' | 'abbasid' | 'ottoman'
 export interface Milestone { date: string; text: string }
 export interface BiographySection { title: string; period: string; text: string }
 export interface Entity {
@@ -61,6 +62,7 @@ export const sources: Record<string, { name: string; url: string }> = {
   ...januarySources,
   ...biographySources,
   ...personBiographySources,
+  ...januaryPeopleSources,
   china: { name: '中国人民抗日战争纪念馆 · 抗战大事记（人民网转载）', url: 'https://dangshi.people.com.cn/n/2015/0708/c395775-27272267.html' },
   chronicle: { name: '新华网资料 · 抗日战争重大记事（中国新闻网转载）', url: 'https://www.chinanews.com.cn/news/2005/2005-05-09/26/571773.shtml' },
   iwm: { name: '英国帝国战争博物馆 · 二战历史', url: 'https://www.iwm.org.uk/history/a-short-history-of-the-second-world-war' },
@@ -79,6 +81,7 @@ export const entities: Record<string, Entity> = Object.fromEntries([
   entity('britain', '英国', '国家', '1707年—至今（联合王国演变）', '欧洲 · 联合王国', '1707年英格兰与苏格兰合并为大不列颠王国，1801年与爱尔兰合并。1922年爱尔兰大部分地区脱离后，逐步形成今日的联合王国。英国在第二次世界大战中为主要同盟国。', [m('1707.05.01', '大不列颠王国成立。'), m('1801.01.01', '大不列颠及爱尔兰联合王国成立。'), m('1939.09.03', '对德国宣战。'), m('1940.05.10', '丘吉尔出任首相。'), m('1945.05.08', '欧洲胜利日。')]),
   entity('germany', '德国', '国家', '1871年统一—至今', '欧洲 · 1937—1945 年处于纳粹统治', '德国于1871年统一。1933—1945年为纳粹统治时期，发动侵略战争并实施大屠杀。1945年纳粹政权覆亡，德国战后分裂，1990年重新统一。政权覆亡不等于国家文明消失。', [m('1871.01.18', '德意志帝国成立。'), m('1933.01.30', '希特勒被任命为总理。'), m('1939.09.01', '入侵波兰，欧洲战事爆发。'), m('1945.05.08', '无条件投降生效，纳粹政权终结。'), m('1990.10.03', '德国重新统一。')]),
   entity('japan', '日本', '国家', '古代形成—至今', '东亚 · 近代帝国与战后转型', '日本近代在明治维新后建立帝国体制，走上对外侵略扩张道路。1931年发动九一八事变，1937年发动全面侵华战争，1945年投降。1947年新宪法生效，进入战后体制。', [m('1868年', '明治维新开始。'), m('1931.09.18', '发动九一八事变。'), m('1937.07.07', '制造卢沟桥事变，全面侵华。'), m('1945.08.15', '天皇广播宣布接受《波茨坦公告》。'), m('1945.09.02', '正式签署投降书。'), m('1947.05.03', '战后宪法生效。')]),
+  entity('korea', '朝鲜', '国家', '1392年朝鲜王朝建立—1910年并入日本；1945年光复后南北分立', '东亚 · 1937年处于日本殖民统治之下', '朝鲜半岛的国家与文明经历朝鲜王朝、大韩帝国和日本殖民统治。1910年《日韩合并条约》后，朝鲜总督府在半岛实行殖民统治；1937年时半岛没有独立的国家政府，海外的独立运动团体在中国等地活动。1945年日本战败后，半岛南北分别建立政权。本长卷的“朝鲜”列同时记录殖民统治下的半岛与海外独立运动，不用它指代1948年后的任一政权。', [m('1392年', '朝鲜王朝建立。'), m('1897年', '改国号为大韩帝国。'), m('1910.08.29', '《日韩合并条约》公布，朝鲜总督府开始统治。'), m('1919.03.01', '三一运动爆发。'), m('1937.01.10', '朝鲜民族革命党在南京召开全党代表大会。'), m('1945.08.15', '日本投降，朝鲜光复。'), m('1948年', '半岛南北分别成立政权。')]),
   entity('ussr', '苏联', '国家', '1922.12.30—1991.12.26', '欧亚 · 苏维埃社会主义共和国联盟', '苏联由多个加盟共和国组成，1922年成立，1991年解体。二战中承担对德战争的主要陆上战场之一，并于1945年8月对日宣战。', [m('1922.12.30', '苏联成立。'), m('1939.08.23', '签订《苏德互不侵犯条约》。'), m('1941.06.22', '遭德国入侵，苏德战争爆发。'), m('1945.08.08', '对日本宣战。'), m('1991.12.26', '苏联正式解体。')]),
   entity('usa', '美国', '国家', '1776.07.04—至今', '北美 · 美利坚合众国', '美国于1776年宣布独立。二战前期逐渐由中立转向援助同盟国，1941年珍珠港事件后正式参战，并向中国等国提供军事与物资援助。', [m('1776.07.04', '通过《独立宣言》。'), m('1789.04.30', '华盛顿就任首任总统。'), m('1941.03.11', '《租借法案》签署。'), m('1941.12.08', '对日宣战。'), m('1945.09.02', '接受日本投降。')]),
   entity('france', '法国', '国家', '历经王国与共和国—至今', '欧洲 · 法兰西', '法国国家形态经历王国、帝国与多个共和国。1940年法国战败，维希政权与自由法国并存；1944年巴黎解放，1946年第四共和国成立。', [m('1789.07.14', '法国大革命的重要节点：攻占巴士底狱。'), m('1870.09.04', '第三共和国成立。'), m('1940.06.22', '与德国签订停战协定。'), m('1944.08.25', '巴黎解放。'), m('1958.10.04', '第五共和国宪法生效。')]),
@@ -149,6 +152,7 @@ export const entityAliases: Record<string, string> = {
   ...Object.fromEntries(januaryEntities.map(item => [item.name, item.id])),
   国民政府: 'nanjing-government', 中共中央: 'cpc-central', 十七路军: 'army17',
   红五军: 'red5', 西路军: 'west-red', 抗大: 'kangda', 罗迈: 'liweihan', 洛甫: 'zhangwentian',
+  ...januaryPeopleAliases,
 }
 for (const item of januaryEntities) {
   const existing = entities[item.id]
@@ -176,6 +180,41 @@ for (const [id, biography] of Object.entries(personBiographies)) {
   if (existing?.type !== '人物') continue
   entities[id] = { ...existing, biography,
     biographySources: [...new Set([...(personProfiles[id]?.sources ?? []), ...(personBiographyReferences[id] ?? [])])] }
+}
+for (const item of januaryPeople) entities[item.id] = item
+
+export const personNames: Record<string, string> = {
+  ...Object.fromEntries(Object.values(entities).filter(item => item.type === '人物').map(item => [item.name, item.id])),
+  ...Object.fromEntries(Object.entries(entityAliases).filter(([, id]) => entities[id]?.type === '人物')),
+}
+const escapedPersonNames = Object.keys(personNames).sort((a, b) => b.length - a.length).map(name => {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // Initials and Latin names must not link fragments inside another word.
+  return /[A-Za-z]/.test(name) ? `(?<![A-Za-z])${escaped}(?![A-Za-z])` : escaped
+})
+const personPattern = new RegExp(escapedPersonNames.join('|'), 'g')
+const protectedNamePattern = /格鲁吉亚|考德贝克|吕贝克/g
+export interface PersonTextPart { text: string; personId?: string }
+export function personTextParts(text: string): PersonTextPart[] {
+  return text.split(/(\[\[[^\]]+\]\])/g).flatMap(part => {
+    const explicit = part.match(/^\[\[([^\]|]+)\|([^\]]+)\]\]$/)
+    if (explicit) return [{ text: explicit[2], personId: entities[explicit[1]]?.type === '人物' ? explicit[1] : undefined }]
+    const pieces: PersonTextPart[] = []
+    const protectedRanges = [...part.matchAll(protectedNamePattern)].map(match => [match.index, match.index + match[0].length])
+    let end = 0
+    for (const match of part.matchAll(personPattern)) {
+      const start = match.index
+      if (start > end) pieces.push({ text: part.slice(end, start) })
+      const next = part.slice(start + match[0].length)
+      // A name in a named institution or ship is not a mention of its namesake.
+      const institution = /^(?:总统图书馆|基金会|研究所|图书馆|青年团|学校|学会|公司|剧院|内阁|宪法|号)/.test(next)
+      const place = protectedRanges.some(([from, to]) => start >= from && start < to)
+      pieces.push({ text: match[0], personId: institution || place ? undefined : personNames[match[0]] })
+      end = start + match[0].length
+    }
+    if (end < part.length) pieces.push({ text: part.slice(end) })
+    return pieces
+  })
 }
 
 export const eras: Era[] = [
@@ -378,6 +417,12 @@ export const events: HistoryEvent[] = [
   ev(1949, 'france', 4, '1949年4月4日', '法国成为北约创始成员', '欧洲战后重建与安全安排。', '法国参与建立北约，同时继续在战后国内外政策中探索自己的位置。', '外交', ['usa', 'britain'], 'state'),
 ]
 
+for (const item of events) {
+  if (item.year !== 1937 || item.month !== 1) continue
+  const mentioned = [item.title, item.summary, item.detail].flatMap(text => personTextParts(text)
+    .flatMap(part => part.personId ? [part.personId] : []))
+  item.entities = [...new Set([...item.entities, ...mentioned])]
+}
 attachTopicTags(events)
 
 export const yearChapters: Record<number, { name: string; line: string }> = {
@@ -395,7 +440,7 @@ export function countriesFor(era: Era, year: number): CountryId[] {
   if (era.id !== 'war') return era.world
   // 中国固定在首位，其余按当年与中国关系的密切程度排列。
   const orders: Record<number, CountryId[]> = {
-    1937: ['china', 'japan', 'usa', 'ussr', 'germany', 'britain', 'france'],
+    1937: ['china', 'japan', 'korea', 'usa', 'ussr', 'germany', 'britain', 'france'],
     1938: ['china', 'japan', 'ussr', 'usa', 'britain', 'france', 'germany'],
     1939: ['china', 'japan', 'ussr', 'usa', 'britain', 'france', 'germany'],
     1940: ['china', 'japan', 'usa', 'ussr', 'britain', 'france', 'germany'],
@@ -427,8 +472,12 @@ export function eventDisplayDay(event: HistoryEvent) {
   if (period === '下旬') return new Date(event.year, event.month, 0).getDate()
   return 15
 }
+// 同一天内按政治、军事、战役、外交、经济、文化、社会排序；同类别保持资料录入顺序。
+const categoryOrder: Record<Category, number> = {
+  '政治': 0, '军事': 1, '战役': 2, '外交': 3, '经济': 4, '文化': 5, '社会': 6,
+}
 export function dateOrder(event: HistoryEvent) {
-  return event.month * 100 + eventDisplayDay(event) + (event.precision === 'month' ? .5 : 0)
+  return event.month * 100 + eventDisplayDay(event) + (event.precision === 'month' ? .5 : 0) + categoryOrder[event.category] / 100
 }
 export function onDay(event: HistoryEvent, day: number) {
   const start = eventDay(event)

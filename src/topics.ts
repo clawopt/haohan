@@ -40,7 +40,7 @@ const special: [string, string, string][] = [
   ['ancient-world', '古代文明', '近代以前的世界文明与国家活动。'],
 ]
 const countryNames: Record<CountryId, string> = {
-  china: '中国', britain: '英国', germany: '德国', japan: '日本', ussr: '苏联', usa: '美国',
+  china: '中国', britain: '英国', germany: '德国', japan: '日本', korea: '朝鲜', ussr: '苏联', usa: '美国',
   france: '法国', egypt: '古埃及', greece: '爱琴文明', rome: '罗马', persia: '波斯',
   abbasid: '阿拔斯王朝', ottoman: '奥斯曼帝国',
 }
