@@ -4,7 +4,7 @@ import { AnimatePresence, LayoutGroup, MotionConfig, motion, useIsPresent, useMo
 import {
   ArrowRight, ArrowUpRight, BookOpen,
   Bookmark, Check, Compass, Crosshair, ExternalLink,
-  Globe2, Landmark, Search, Sparkles,
+  Github, Globe2, Landmark, Search, Sparkles, Star,
   Tag, Users, X,
 } from 'lucide-react'
 import {
@@ -187,6 +187,28 @@ export default function App() {
   const [toast, setToast] = useState('')
   const [saved, setSaved] = useState<string[]>([])
   const [savedReady, setSavedReady] = useState(false)
+  const [stars, setStars] = useState<number | null>(null)
+  useEffect(() => {
+    let active = true
+    let last = 0
+    function loadStars() {
+      if (Date.now() - last < 15000) return
+      last = Date.now()
+      fetch('https://api.github.com/repos/clawopt/haohan', { cache: 'no-store', headers: { Accept: 'application/vnd.github+json' } })
+        .then(response => response.ok ? response.json() : null)
+        .then(data => { if (active && typeof data?.stargazers_count === 'number') setStars(data.stargazers_count) })
+        .catch(() => {})
+    }
+    function onVisible() { if (document.visibilityState === 'visible') loadStars() }
+    loadStars()
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', loadStars)
+    return () => {
+      active = false
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', loadStars)
+    }
+  }, [])
   const availableCountries = countriesFor(era, year)
   const navigableYears = topic ? topicYears(topic) : knownYears
   const isWar = era.id === 'war'
@@ -347,6 +369,11 @@ export default function App() {
           <a href={archiveHref('/archives/')} aria-label="浏览历史档案目录"><Globe2 size={15} />历史档案</a>
         </nav>
         <button className="search-trigger" onClick={() => setOverlay('search')}><Search size={15} /><span>搜索历史、人物</span><kbd>⌘ K</kbd></button>
+        <a className="github-link" href="https://github.com/clawopt/haohan" target="_blank" rel="noreferrer"
+          aria-label={`在 GitHub 打开浩汉项目${stars === null ? '' : `，${stars} 个 Star`}`}>
+          <Github size={16} strokeWidth={1.4} />
+          {stars !== null && <span className="github-stars"><Star size={10} strokeWidth={1.6} />{stars.toLocaleString('en-US')}</span>}
+        </a>
         <button className="about-button icon-button" onClick={() => setOverlay('about')} aria-label="关于浩汉"><Compass size={22} strokeWidth={1.2} /></button>
       </header>
 

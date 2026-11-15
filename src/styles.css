@@ -51,6 +51,10 @@ svg { flex-shrink: 0; }
 .about-archive-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 18px; font-size: 11px; color: var(--accent); }
 .icon-button:hover { color: var(--accent); background: rgba(var(--accent-rgb),.09); }
 .about-button { color: var(--accent); margin-left: -8px; }
+.github-link { display: flex; align-items: center; gap: 6px; padding: 7px 9px; color: #8d9799; border: 1px solid #ffffff12; border-radius: 3px; background: #ffffff02; }
+.github-link:hover { color: var(--accent); border-color: #b99f6850; }
+.github-stars { display: flex; align-items: center; gap: 3px; font: 9px Georgia, serif; letter-spacing: .3px; color: #a89a7c; }
+.github-stars svg { color: var(--accent); }
 .workspace { display: flex; flex: 1; min-height: 0; }
 
 /* A machined, dates-only brass ruler, with breaks for years not yet collected. */
@@ -444,6 +448,7 @@ svg { flex-shrink: 0; }
   .date-drilldown { max-height: calc(100dvh - 89px); }
   .topbar { padding: 0 17px; height: 65px; gap: 12px; }.brand-name { font-size: 22px; }.brand-mark { width: 29px; height: 32px; }.brand { gap: 9px; }.top-nav { gap: 16px; }.top-nav button, .top-nav > a { font-size: 9px; gap: 5px; }.search-trigger { width: 29px; padding: 5px; border: 0; }.search-trigger span,.search-trigger kbd,.about-button { display: none; }
   .year-ruler { --ruler-width: 88px; }.year-node { padding-right: 18px; }.year-node time { font-size: 16px; }.year-disclosure { right: 5px; }.ruler-ticks { left: 5px; }.ruler-ticks i { width: 4px; }.ruler-ticks i:nth-child(3) { width: 9px; }.ruler-gap i { left: 5px; width: 60px; }
+  .github-link { padding: 5px; gap: 4px; border: 0; }.github-link svg:first-child { width: 17px; height: 17px; }.github-stars { font-size: 8px; }
   .scene-toolbar { padding: 0 22px; }.category-filters { gap: 13px; }.category-filters button { font-size: 9px; }.scene-tools { gap: 12px; }.scene-tools > button span, .focus-trigger span { display: none; }.scene-hint { display: none; }.world-controls { margin-left: auto; }.scene-footer { padding: 0 18px; }
 }
 @media (max-width: 520px) {
@@ -467,6 +472,9 @@ svg { flex-shrink: 0; }
   .entity-window { top: 18px; right: 12px; left: 12px; width: auto; max-width: none; max-height: calc(100dvh - 36px); padding: 18px 23px 25px; }.people-grid,.saved-grid { grid-template-columns: 1fr; }.people-grid b { font-size: 14px; }.people-grid p,.people-grid small { font-size: 9px; }.era-map { grid-template-columns: 1fr 1fr; gap: 9px; }.era-map-card { padding: 13px; }.era-map-card > span:not(.tiny-diamond) { display: none; }.search-hint p { font-size: 10px; letter-spacing: 0; }.search-hint small { font-size: 8px; text-align: center; }.collection-empty h3 { font-size: 13px; text-align: center; }.collection-empty p { font-size: 9px; }.about-features { gap: 14px; font-size: 8px; }.source-notes { font-size: 11px; }
   .entity-window-top { top: -18px; margin: -18px -23px 0; padding: 13px 23px 12px; }
   .source-trigger span { display: none; }.source-trigger { margin-left: 0; }.world-controls .icon-button { width: 19px; }
+}
+@media (max-width: 360px) {
+  .topbar { gap: 8px; padding: 0 10px; }.github-link { padding: 4px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
