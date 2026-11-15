@@ -53,7 +53,7 @@ export default function TopicPicker({ selected, candidates, country, close, choo
         </button>
       })}</div></section>}
     {!available.length && <p className="topic-no-match">没有匹配的标签，试试“西安”或“延安”。</p>}</div>
-    <p className="topic-picker-hint">国别标签仅筛选标注国家，其他国家保留同期内容。数量对应当前时间和分类条件。</p>
+    <p className="topic-picker-hint">选择标签会聚焦并高亮相关年度，其余年份暂不可选。国别标签仅筛选标注国家，其他国家保留同期内容；数量对应当前时间和分类条件。</p>
     {selected && <button className="topic-clear" onClick={() => choose('')}>清除标签筛选<X size={12} /></button>}
   </div>
 }

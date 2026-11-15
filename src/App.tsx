@@ -8,12 +8,15 @@ import {
   Tag, Users, X,
 } from 'lucide-react'
 import {
-  countriesFor, dateOrder, entities, eras, eventDay, eventDisplayDay, events, formatYear, images, onDay, personNames, personTextParts, plainText, sources, topicLabel,
+  countriesFor, dateOrder, entities, eras, eventDay, eventDisplayDay, events, formatYear, images, onDay, personNames, personTextParts, plainText, sources, topicLabel, topicTags,
 } from './data'
 import type { Category, CountryId, Entity, Era, HistoryEvent } from './data'
 import ChronicleScene, { countryName, knownYears } from './ChronicleScene'
+import { archiveHref, eventPath, isPlainClick, personPath } from './site'
+import { nearestTopicYear, topicYears } from './topicTimeline'
 
 type Overlay = 'search' | 'people' | 'saved' | 'eras' | 'sources' | 'about' | HistoryEvent | null
+const eraForYear = (year: number) => year >= 1937 && year <= 1945 ? eras.find(item => item.id === 'war') : eras.find(item => item.year === year)
 
 function useFocusScope(active: boolean, close: () => void) {
   const ref = useRef<HTMLDivElement>(null)
@@ -67,18 +70,10 @@ function Modal({ children, title, close, wide = false, suspended = false, layout
   </motion.div>
 }
 
-// 年份切换默认进入1月；若该年没有1月记录，则进入最早有中国记录的月份。
-function defaultMonth(year: number) {
-  const yearEvents = events.filter(item => item.year === year)
-  const months = yearEvents.map(item => item.month)
-  if (months.includes(1)) return 1
-  const chinaMonths = yearEvents.filter(item => item.country === 'china').map(item => item.month)
-  return chinaMonths.length ? Math.min(...chinaMonths) : months.length ? Math.min(...months) : 1
-}
 function InlineText({ text, open }: { text: string; open: (id: string) => void }) {
   return <>{personTextParts(text).map((part, index) => part.personId
-    ? <a href={`#entity-${part.personId}`} key={index} className="inline-link"
-      onClick={e => { e.preventDefault(); open(part.personId!) }}>{part.text}</a>
+    ? <a href={archiveHref(personPath(part.personId))} key={index} className="inline-link"
+      onClick={e => { if (isPlainClick(e)) { e.preventDefault(); open(part.personId!) } }}>{part.text}</a>
     : <span key={index}>{part.text}</span>)}</>
 }
 
@@ -86,8 +81,8 @@ function EntityLink({ id, open, compact = false }: { id: string; open: (id: stri
   const item = entities[id]
   if (!item) return null
   if (item.type !== '人物') return <span className={`entity-chip entity-static ${compact ? 'compact' : ''}`}><Landmark size={11} />{item.name}</span>
-  return <a className={`entity-chip ${compact ? 'compact' : ''}`} href={`#entity-${id}`}
-    onClick={e => { e.preventDefault(); open(id) }}>
+  return <a className={`entity-chip ${compact ? 'compact' : ''}`} href={archiveHref(personPath(id))}
+    onClick={e => { if (isPlainClick(e)) { e.preventDefault(); open(id) } }}>
     <Users size={11} />
     {item.name}<ArrowUpRight size={10} />
   </a>
@@ -125,7 +120,7 @@ function EventCard({ item, open, openEntity, openTopic, saved, toggleSaved, feat
         <button className={`save-button ${saved ? 'saved' : ''}`} onClick={() => toggleSaved(item.id)}
           aria-label={`${saved ? '取消典藏' : '典藏'}${item.title}`} aria-pressed={saved}><Bookmark size={13} fill={saved ? 'currentColor' : 'none'} /></button>
       </div>
-      <button className="event-title-button" onClick={() => open(item)}><h3>{item.title}</h3><ArrowUpRight size={15} /></button>
+      <a className="event-title-button" href={archiveHref(eventPath(item.id))} onClick={e => { if (isPlainClick(e)) { e.preventDefault(); open(item) } }}><h3>{item.title}</h3><ArrowUpRight size={15} /></a>
       <p><InlineText text={item.summary} open={openEntity} /></p>
       {item.archive && <div className="activity-coordinate"><span>{item.location}</span><b className={item.precision === 'day' ? 'exact-date' : ''}>{item.precision === 'day' ? '定日' : item.precision === 'range' ? '跨日' : item.precision === 'approximate' ? '约日' : item.precision === 'disputed' ? '待核' : '月级'}</b></div>}
       <div className="event-bottom"><span className={`category-tag category-${item.category}`}><i />{item.category}</span>
@@ -176,40 +171,54 @@ function EntityWindow({ entity, close }: {
 export default function App() {
   const [era, setEra] = useState<Era>(eras.find(item => item.id === 'war')!)
   const [year, setYear] = useState(1937)
-  const [month, setMonth] = useState<number | null>(1)
+  const [month, setMonth] = useState<number | null>(null)
+  const [view, setView] = useState<'overview' | 'records'>('overview')
   const [day, setDay] = useState<number | null>(null)
   const [country, setCountry] = useState<CountryId>('china')
   const [category, setCategory] = useState<'全部' | Category>('全部')
   const [topic, setTopic] = useState('')
   const reducedMotion = useReducedMotion()
-  const [animated, setAnimated] = useState(!reducedMotion)
+  const [animated, setAnimated] = useState(true)
   const [playing, setPlaying] = useState(false)
   const [locatedEvent, setLocatedEvent] = useState<string | null>(null)
   const [overlay, setOverlay] = useState<Overlay>(null)
   const [entityId, setEntityId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [toast, setToast] = useState('')
-  const [saved, setSaved] = useState<string[]>(() => {
-    try {
-      const data: unknown = JSON.parse(localStorage.getItem('haohan-saved') ?? '[]')
-      return Array.isArray(data) ? data.filter((id): id is string => typeof id === 'string' && events.some(e => e.id === id)) : []
-    } catch { return [] }
-  })
+  const [saved, setSaved] = useState<string[]>([])
+  const [savedReady, setSavedReady] = useState(false)
   const availableCountries = countriesFor(era, year)
+  const navigableYears = topic ? topicYears(topic) : knownYears
   const isWar = era.id === 'war'
   const visualTheme = isWar && year === 1945 ? 'dawn' : era.theme
   const openEntity = (id: string) => { if (entities[id]?.type === '人物') setEntityId(id) }
   const closeOverlay = () => { setOverlay(null); setQuery('') }
-  function selectEra(item: Era, newYear = item.year) {
-    setEra(item); setYear(newYear); setCountry('china'); setCategory('全部'); setLocatedEvent(null)
-    setMonth(defaultMonth(newYear)); setDay(null)
+  function selectEra(item: Era, newYear = item.year, nextTopic = '') {
+    setEra(item); setYear(newYear); setCountry(topicTags[nextTopic]?.country ?? 'china'); setCategory('全部'); setLocatedEvent(null); setTopic(nextTopic)
+    setView('overview'); setMonth(null); setDay(null)
   }
   function selectYear(value: number) {
-    const found = value >= 1937 && value <= 1945 ? eras.find(item => item.id === 'war') : eras.find(item => item.year === value)
-    if (found) selectEra(found, value)
+    if (!navigableYears.includes(value)) return
+    const found = eraForYear(value)
+    if (found) selectEra(found, value, topic)
   }
   function moveYear(direction: number) {
-    selectYear(knownYears[knownYears.indexOf(year) + direction])
+    const next = navigableYears[navigableYears.indexOf(year) + direction]
+    if (next !== undefined) selectYear(next)
+  }
+  function selectMonth(value: number | null) {
+    setMonth(value); setView(value === null ? 'overview' : 'records')
+    setDay(null); setLocatedEvent(null)
+  }
+  function exploreCategory(id: CountryId, value: Category) {
+    setView('records'); setMonth(null); setDay(null); setCountry(id); setCategory(value)
+    setPlaying(false); setLocatedEvent(null)
+  }
+  function exploreJanuary() {
+    selectMonth(1); setCategory('全部'); setCountry(topicTags[topic]?.country ?? 'china'); setPlaying(false)
+  }
+  function exploreYear() {
+    setView('records'); setMonth(null); setDay(null); setPlaying(false); setLocatedEvent(null)
   }
   function toggleSaved(id: string) {
     setSaved(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])
@@ -217,13 +226,61 @@ export default function App() {
   }
   function openEvent(item: HistoryEvent) { setOverlay(item); setEntityId(null) }
   function openTopic(id: string) {
-    setTopic(id)
+    if (id) {
+      const nextYear = nearestTopicYear(id, year)
+      const nextEra = nextYear !== undefined ? eraForYear(nextYear) : undefined
+      if (!nextEra || nextYear === undefined) return
+      selectEra(nextEra, nextYear, id)
+    } else setTopic('')
     setPlaying(false); setLocatedEvent(null)
     setEntityId(null); closeOverlay()
   }
+  function locateEvent(item: HistoryEvent) {
+    const nextEra = eraForYear(item.year)
+    if (!nextEra) return
+    selectEra(nextEra, item.year, item.topicIds.includes(topic) ? topic : '')
+    setView('records'); setCountry(item.country)
+    if (item.archive) { setMonth(item.month); setDay(eventDisplayDay(item)) }
+    setLocatedEvent(item.id); closeOverlay()
+  }
   useEffect(() => {
+    try {
+      const data: unknown = JSON.parse(localStorage.getItem('haohan-saved') ?? '[]')
+      setSaved(Array.isArray(data) ? data.filter((id): id is string => typeof id === 'string' && events.some(e => e.id === id)) : [])
+    } catch { /* Storage is optional. */ }
+    setSavedReady(true)
+    const params = new URLSearchParams(window.location.search)
+    const item = events.find(event => event.id === params.get('event'))
+    if (item) {
+      selectYear(item.year); setCountry(item.country)
+      setView('records')
+      if (item.archive) { setMonth(item.month); setDay(eventDisplayDay(item)) }
+      setLocatedEvent(item.id); openEvent(item)
+    } else {
+      const requestedYear = Number(params.get('year'))
+      const requestedTopic = params.get('topic') ?? ''
+      const validTopic = topicYears(requestedTopic).length ? requestedTopic : ''
+      const targetYear = knownYears.includes(requestedYear) ? requestedYear : year
+      const resolvedYear = validTopic ? nearestTopicYear(validTopic, targetYear)! : targetYear
+      const targetEra = eraForYear(resolvedYear)
+      if (targetEra && ((params.has('year') && knownYears.includes(requestedYear)) || validTopic)) {
+        selectEra(targetEra, resolvedYear, validTopic)
+        const targetMonth = Number(params.get('month'))
+        if (resolvedYear === targetYear && params.has('month') && targetMonth >= 1 && targetMonth <= 12) selectMonth(targetMonth)
+        else if (resolvedYear === targetYear && params.get('view') === 'records') setView('records')
+        const targetCountry = params.get('country') as CountryId | null
+        if (targetCountry && countriesFor(targetEra, resolvedYear).includes(targetCountry)) setCountry(targetCountry)
+        const targetCategory = params.get('category') as Category | null
+        if (resolvedYear === targetYear && targetCategory && ['政治', '军事', '经济', '文化', '社会', '外交', '战役'].includes(targetCategory)) setCategory(targetCategory)
+      }
+      const person = params.get('person')
+      if (person) openEntity(person)
+    }
+  }, [])
+  useEffect(() => {
+    if (!savedReady) return
     try { localStorage.setItem('haohan-saved', JSON.stringify(saved)) } catch { /* Private browsing may disable local storage. */ }
-  }, [saved])
+  }, [saved, savedReady])
   useEffect(() => {
     if (!toast) return
     const timer = setTimeout(() => setToast(''), 2500)
@@ -239,12 +296,12 @@ export default function App() {
         else setPlaying(false)
         return
       }
-      const next = knownYears[knownYears.indexOf(year) + 1]
-      if (next) selectYear(next)
+      const next = navigableYears[navigableYears.indexOf(year) + 1]
+      if (next !== undefined) selectYear(next)
       else setPlaying(false)
     }, 5500)
     return () => clearTimeout(timer)
-  }, [playing, year, month, day, overlay, entityId])
+  }, [playing, year, month, day, overlay, entityId, topic])
   useEffect(() => {
     function keyboard(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -278,15 +335,16 @@ export default function App() {
   return <MotionConfig reducedMotion={animated ? 'never' : 'always'} transition={animated ? { duration: .3 } : { duration: 0 }}><LayoutGroup>
     <div className={`app theme-${visualTheme} ${animated ? '' : 'motion-off'}`} inert={Boolean(overlay || entityId)}>
       <header className="topbar">
-        <button className="brand" onClick={() => { setTopic(''); selectEra(eras.find(e => e.id === 'war')!) }} aria-label="浩汉首页">
+        <a className="brand" href={archiveHref('/')} onClick={e => { if (isPlainClick(e)) { e.preventDefault(); setTopic(''); selectEra(eras.find(e => e.id === 'war')!) } }} aria-label="浩汉首页">
           <span className="brand-mark"><Landmark size={24} strokeWidth={1.2} /><i /></span>
-          <span className="brand-name">浩汉<small>HAO HAN</small></span>
+          <h1 className="brand-name">浩汉<small>HAO HAN</small></h1>
           <span className="brand-divider" /><span className="brand-tagline">在时间中，读懂世界</span>
-        </button>
+        </a>
         <nav className="top-nav" aria-label="主导航">
           <button className="active" onClick={() => { closeOverlay(); document.querySelector('.scene-viewport')?.scrollTo({ top: 0, behavior: animated ? 'smooth' : 'instant' }) }}><BookOpen size={15} />历史长卷</button>
           <button onClick={() => { setQuery(''); setOverlay('people') }}><Users size={15} />人物志</button>
           <button onClick={() => setOverlay('saved')}><Bookmark size={14} />典藏档案{saved.length > 0 && <span className="nav-count">{saved.length}</span>}</button>
+          <a href={archiveHref('/archives/')} aria-label="浏览历史档案目录"><Globe2 size={15} />历史档案</a>
         </nav>
         <button className="search-trigger" onClick={() => setOverlay('search')}><Search size={15} /><span>搜索历史、人物</span><kbd>⌘ K</kbd></button>
         <button className="about-button icon-button" onClick={() => setOverlay('about')} aria-label="关于浩汉"><Compass size={22} strokeWidth={1.2} /></button>
@@ -294,7 +352,8 @@ export default function App() {
 
       <ChronicleScene year={year} era={era} countries={availableCountries} country={country} setCountry={setCountry}
         topic={topic} chooseTopic={openTopic}
-        month={month} day={day} setMonth={setMonth} setDay={setDay}
+        month={month} day={day} setMonth={selectMonth} setDay={setDay}
+        overview={view === 'overview'} exploreCategory={exploreCategory} exploreJanuary={exploreJanuary} exploreYear={exploreYear} openEvent={openEvent}
         category={category} setCategory={setCategory} selectYear={selectYear} animated={animated} setAnimated={setAnimated}
         playing={playing} setPlaying={setPlaying} blocked={Boolean(overlay || entityId)}
         openSources={() => setOverlay('sources')} locatedEvent={locatedEvent}
@@ -318,7 +377,8 @@ export default function App() {
         {sameTime.map(item => <button key={item.id} onClick={() => openEvent(item)}><span>{countryName(item.country, item.year)}</span><div><b>{item.title}</b><small>{item.date}</small></div><ArrowUpRight size={15} /></button>)}</div>}
       <div className="detail-source">{[...new Set([detailEvent.source, ...(detailEvent.references ?? [])])].map(id => <a key={id} href={sources[id].url} target="_blank" rel="noreferrer"><BookOpen size={13} />{sources[id].name}<ExternalLink size={11} /></a>)}</div>
       <div className="detail-actions"><button className={`primary-button ${saved.includes(detailEvent.id) ? 'is-saved' : ''}`} onClick={() => toggleSaved(detailEvent.id)}>{saved.includes(detailEvent.id) ? <Check size={15} /> : <Bookmark size={15} />}{saved.includes(detailEvent.id) ? '已收入典藏' : '收入典藏档案'}</button>
-        <button className="text-button" onClick={() => { setTopic(''); selectYear(detailEvent.year); setCountry(detailEvent.country); if (detailEvent.archive) { setMonth(detailEvent.month); setDay(eventDisplayDay(detailEvent)) } setLocatedEvent(detailEvent.id); closeOverlay() }}>定位到历史长卷<ArrowRight size={14} /></button></div>
+        <a className="text-button" href={archiveHref(eventPath(detailEvent.id))}>阅读独立档案<ExternalLink size={14} /></a>
+        <button className="text-button" onClick={() => locateEvent(detailEvent)}>定位到历史长卷<ArrowRight size={14} /></button></div>
     </Modal>}
 
     {overlay === 'search' && <Modal key="search" title="搜索历史" close={closeOverlay} wide suspended={Boolean(entityId)}>
@@ -343,7 +403,14 @@ export default function App() {
 
     {overlay === 'eras' && <Modal key="eras" title="穿越时代" close={closeOverlay} wide suspended={Boolean(entityId)}>
       <div className="modal-eyebrow"><Compass size={16} />五千年 · 一卷山河</div><h2 className="modal-title">选择一个时代，走进历史。</h2><p className="modal-description">抗战篇章收录逐年大事记，其他时代提供代表性节点与同期世界。</p>
-      <div className="era-map">{eras.map(item => <button key={item.id} className={`era-map-card theme-${item.theme} ${era.id === item.id ? 'active' : ''}`} onClick={() => { selectEra(item); closeOverlay() }}><span className="tiny-diamond" /><strong>{item.name}</strong><small>{item.range}</small><span>{item.id === 'war' ? '1937—1945 · 完整篇章' : item.subtitle.slice(0, 16) + '…'}</span><ArrowUpRight size={15} /></button>)}</div>
+      <div className="era-map">{eras.map(item => {
+        const choices = navigableYears.filter(value => eraForYear(value)?.id === item.id)
+        return <button key={item.id} className={`era-map-card theme-${item.theme} ${era.id === item.id ? 'active' : ''}`}
+          disabled={!choices.length} onClick={() => { selectYear(choices[0]); closeOverlay() }}>
+          <span className="tiny-diamond" /><strong>{item.name}</strong><small>{item.range}</small>
+          <span>{item.id === 'war' ? '1937—1945 · 抗战篇章' : item.subtitle.slice(0, 16) + '…'}</span><ArrowUpRight size={15} />
+        </button>
+      })}</div>
     </Modal>}
 
     {overlay === 'sources' && <Modal key="sources" title="史料与纪年说明" close={closeOverlay} suspended={Boolean(entityId)}>
@@ -356,6 +423,7 @@ export default function App() {
     {overlay === 'about' && <Modal key="about" title="关于浩汉" close={closeOverlay} suspended={Boolean(entityId)}>
       <div className="about-compass"><Compass size={72} strokeWidth={0.7} /></div><h2 className="about-title">浩汉</h2><p className="about-slogan">在时间中，读懂世界。</p><p className="modal-description about-description">一条中国历史的时间长卷，一幅同一时刻的世界。沿年代前行，跨文明眺望；走近每一个事件，也走近历史中的每一个人。</p>
       <div className="about-features"><span><Globe2 size={17} />时间 × 文明</span><span><Users size={17} />人物生平</span><span><Sparkles size={17} />时代色彩</span></div>
+      <p className="about-archive-links"><a href={archiveHref('/about/')}>关于与内容编写原则</a><a href={archiveHref('/sources/')}>史料与核验说明</a></p>
       <button className="primary-button about-start" onClick={closeOverlay}>继续我的历史旅程<ArrowRight size={15} /></button>
     </Modal>}
 

@@ -8,6 +8,9 @@ import {
 import { dateOrder, entities, eventDay, eventDisplayDay, events, formatYear, inCategory, onDay, onDisplayDay, topicLabel, topicTags, undatedPeriod } from './data'
 import type { Category, CountryId, Era, HistoryEvent } from './data'
 import TopicPicker from './TopicPicker'
+import AnnualOverview from './AnnualOverview'
+import { yearOverviews } from './yearOverview'
+import { topicYearCount, topicYears } from './topicTimeline'
 
 export const knownYears = [...new Set(events.map(event => event.year))].sort((a, b) => a - b)
 export function countryName(id: CountryId, year: number) {
@@ -77,9 +80,10 @@ function Atmosphere({ active, theme }: { active: boolean; theme: Era['theme'] })
   </div>
 }
 
-function DateDrilldown({ year, month, day, changeMonth, changeDay, close, animated }: {
+function DateDrilldown({ year, month, day, changeMonth, changeDay, close, animated, overview, showOverview, showYearRecords }: {
   year: number; month: number | null; day: number | null;
-  changeMonth: (month: number | null) => void; changeDay: (day: number | null) => void; close: () => void; animated: boolean
+  changeMonth: (month: number | null) => void; changeDay: (day: number | null) => void; close: () => void; animated: boolean;
+  overview: boolean; showOverview: () => void; showYearRecords: () => void
 }) {
   const [daysOpen, setDaysOpen] = useState(day !== null)
   const scroll = useRef<HTMLDivElement>(null)
@@ -108,8 +112,12 @@ function DateDrilldown({ year, month, day, changeMonth, changeDay, close, animat
       <button className="icon-button" aria-label="收起月日选择" onClick={close}><X size={17} /></button>
     </div>
     <div className="date-drilldown-body" ref={scroll}>
-      <button className={`date-year-all ${month === null ? 'active' : ''}`} aria-label="查看全年事件" aria-pressed={month === null}
-        onClick={() => { changeMonth(null); setDaysOpen(false); close() }}><span>全年</span><small>{yearItems.length}条记录</small><ArrowRight size={13} /></button>
+      <div className="date-year-options">
+        <button className={`date-year-all no-count ${overview ? 'active' : ''}`} aria-label="查看年度大纲" aria-pressed={overview}
+          onClick={() => { showOverview(); setDaysOpen(false); close() }}><span>年度大纲</span><ArrowRight size={13} /></button>
+        <button className={`date-year-all ${!overview && month === null ? 'active' : ''}`} aria-label="查看全年记录" aria-pressed={!overview && month === null}
+          onClick={() => { showYearRecords(); setDaysOpen(false); close() }}><span>全年记录</span><small>{yearItems.length}条记录</small><ArrowRight size={13} /></button>
+      </div>
       <ol className="month-ruler" aria-label="月份时间轴">{Array.from({ length: 12 }, (_, index) => {
         const value = index + 1
         const monthItems = yearItems.filter(item => item.month === value)
@@ -154,18 +162,20 @@ function DateDrilldown({ year, month, day, changeMonth, changeDay, close, animat
   </div>
 }
 
-function YearRuler({ year, select, animated, month, day, changeMonth, changeDay, blocked, pause }: {
+function YearRuler({ year, select, animated, month, day, changeMonth, changeDay, blocked, pause, overview, topic, clearTopic, showYearRecords }: {
   year: number; select: (year: number) => void; animated: boolean;
   month: number | null; day: number | null; blocked: boolean;
   changeMonth: (month: number | null) => void; changeDay: (day: number | null) => void
-  pause: () => void
+  pause: () => void; overview: boolean; topic: string; clearTopic: () => void; showYearRecords: () => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const root = useRef<HTMLElement>(null)
   const [expandedYear, setExpandedYear] = useState<number | null>(null)
+  const matches = topic ? topicYears(topic) : knownYears
   const expanded = expandedYear === year && !blocked
   const close = useCallback(() => setExpandedYear(null), [])
   useEffect(() => { setExpandedYear(previous => previous === year ? previous : null) }, [year])
+  useEffect(() => { close() }, [topic, close])
   useEffect(() => {
     if (blocked) close()
   }, [blocked, close])
@@ -173,6 +183,7 @@ function YearRuler({ year, select, animated, month, day, changeMonth, changeDay,
     if (!expanded) return
     const preferred = root.current?.querySelector<HTMLButtonElement>('.day-node.active, .date-undated.active') ??
       root.current?.querySelector<HTMLButtonElement>('.month-node.active') ??
+      root.current?.querySelector<HTMLButtonElement>('.date-year-all.active') ??
       root.current?.querySelector<HTMLButtonElement>('.date-year-all')
     preferred?.focus({ preventScroll: true })
     function outside(event: PointerEvent) {
@@ -191,22 +202,33 @@ function YearRuler({ year, select, animated, month, day, changeMonth, changeDay,
     }
   }, [expanded, close, year])
   useEffect(() => {
-    const node = ref.current?.querySelector<HTMLElement>(`[data-year="${year}"]`)
-    if (node && ref.current) {
-      ref.current.scrollTo({
-        top: node.offsetTop - ref.current.clientHeight * .34,
-        behavior: animated ? 'smooth' : 'instant',
-      })
-    }
-  }, [year, animated])
-  return <aside className={`year-ruler ${expanded ? 'dates-expanded' : ''}`} ref={root} aria-label="年份时间轴">
+    const root = ref.current
+    const node = root?.querySelector<HTMLElement>(`[data-year="${year}"]`)
+    if (!root || !node) return
+    // Keep the ruler still when the clicked year is already fully visible;
+    // recentring would move the row out from under the pointer.
+    const margin = 10
+    const top = node.offsetTop
+    const bottom = top + node.offsetHeight
+    if (top >= root.scrollTop + margin && bottom <= root.scrollTop + root.clientHeight - margin) return
+    root.scrollTo({
+      top: Math.max(0, Math.min(top - root.clientHeight * .34, root.scrollHeight - root.clientHeight)),
+      behavior: animated ? 'smooth' : 'instant',
+    })
+  }, [year, animated, topic])
+  return <aside className={`year-ruler ${expanded ? 'dates-expanded' : ''} ${topic ? 'topic-focused' : ''}`} ref={root} aria-label="年份时间轴">
     <span className="ruler-screw screw-top" aria-hidden="true" />
+    {topic && <div className="ruler-topic-note" role="status" aria-label={`${topicLabel(topic)}，相关年度：${matches.map(formatYear).join('、')}`}
+      title={`${topicLabel(topic)}：${matches.map(formatYear).join('、')}年`}>
+      <span>{matches.length}个年度</span><button onClick={clearTopic} aria-label="清除年份标签筛选"><X size={11} /></button>
+    </div>}
     <div className="ruler-scroll" ref={ref}>
       <div className="ruler-years">
         {knownYears.map((value, index) => <div key={value} className="ruler-step">
           {index > 0 && value - knownYears[index - 1] > 1 &&
             <div className="ruler-gap" aria-label="未收录年份间隔"><i /><i /></div>}
-          <button className={`year-node ${value === year ? 'current' : ''}`} data-year={value}
+          <button className={`year-node ${value === year ? 'current' : ''} ${topic && matches.includes(value) ? 'topic-match' : ''}`} data-year={value}
+            disabled={Boolean(topic && !matches.includes(value))}
             onClick={() => {
               pause()
               if (value !== year) { select(value); setExpandedYear(null) }
@@ -215,14 +237,14 @@ function YearRuler({ year, select, animated, month, day, changeMonth, changeDay,
             aria-label={`${value <= -1046 ? '约' : ''}${formatYear(value)}年`}
             aria-current={value === year ? 'date' : undefined} aria-expanded={value === year && expanded}
             aria-controls={value === year && expanded ? 'left-date-navigation' : undefined}
-            title={value === year ? expanded ? '收起月份与日期' : '展开月份与日期' : '选择年份'}>
+            title={topic && !matches.includes(value) ? `这一年没有“${topicLabel(topic)}”记录` : topic ? `${formatYear(value)}年 · ${topicYearCount(topic, value)}条“${topicLabel(topic)}”记录` : value === year ? expanded ? '收起月份与日期' : '展开月份与日期' : '选择年份'}>
             {value === year && <motion.span className="ruler-cursor" layoutId="ruler-cursor"
               transition={{ type: 'spring', stiffness: 310, damping: 30, duration: animated ? undefined : 0 }}>
               <i /><b /><i />
             </motion.span>}
             <span className="ruler-ticks" aria-hidden="true"><i /><i /><i /><i /><i /></span>
             <span className="year-label"><time>{value <= -1046 && <small>约</small>}{value < 0 && <small>前</small>}{Math.abs(value)}</time>
-              {value === year && <span className="ruler-selection">{month === null ? '全年' : `${String(month).padStart(2, '0')}月${day === null ? '' : day === -1 ? ' · 未定' : ` · ${String(day).padStart(2, '0')}`}`}</span>}</span>
+              {value === year && <span className="ruler-selection">{overview ? '年度大纲' : month === null ? '全年详录' : `${String(month).padStart(2, '0')}月${day === null ? '' : day === -1 ? ' · 未定' : ` · ${String(day).padStart(2, '0')}`}`}</span>}</span>
             {value === year && <ChevronRight size={11} className="year-disclosure" />}
             <span className="ruler-notch" aria-hidden="true" />
           </button>
@@ -234,6 +256,7 @@ function YearRuler({ year, select, animated, month, day, changeMonth, changeDay,
         initial={{ x: animated ? -12 : 0, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: animated ? -8 : 0, opacity: 0 }}
         transition={{ duration: animated ? .18 : 0 }}>
         <DateDrilldown year={year} month={month} day={day} changeMonth={changeMonth} changeDay={changeDay} animated={animated}
+          overview={overview} showOverview={() => changeMonth(null)} showYearRecords={showYearRecords}
           close={() => { close(); ref.current?.querySelector<HTMLButtonElement>(`[data-year="${year}"]`)?.focus({ preventScroll: true }) }} />
       </motion.div>}
     </AnimatePresence>
@@ -245,7 +268,7 @@ export default function ChronicleScene({
   year, era, countries, country, setCountry, category, setCategory, selectYear, animated,
   setAnimated, playing, setPlaying, blocked, renderEvent, openSources, locatedEvent,
   month, day, setMonth, setDay,
-  topic, chooseTopic,
+  topic, chooseTopic, overview, exploreCategory, exploreJanuary, exploreYear, openEvent,
 }: {
   year: number; era: Era; countries: CountryId[]; country: CountryId; setCountry: (id: CountryId) => void;
   category: '全部' | Category; setCategory: (category: '全部' | Category) => void;
@@ -255,6 +278,8 @@ export default function ChronicleScene({
   openSources: () => void; locatedEvent: string | null;
   month: number | null; day: number | null; setMonth: (month: number | null) => void; setDay: (day: number | null) => void;
   topic: string; chooseTopic: (id: string) => void;
+  overview: boolean; exploreCategory: (country: CountryId, category: Category) => void;
+  exploreJanuary: () => void; exploreYear: () => void; openEvent: (item: HistoryEvent) => void;
 }) {
   const viewport = useRef<HTMLDivElement>(null)
   const moreButton = useRef<HTMLButtonElement>(null)
@@ -269,7 +294,8 @@ export default function ChronicleScene({
   const focusPanel = useRef<HTMLDivElement>(null)
   const [topicMenuOpen, setTopicMenuOpen] = useState(false)
   const closeTopicMenu = useCallback(() => setTopicMenuOpen(false), [])
-  const yearIndex = knownYears.indexOf(year)
+  const navigableYears = topic ? topicYears(topic) : knownYears
+  const yearIndex = navigableYears.indexOf(year)
   const yearItems = events.filter(item => item.year === year)
   const hasDailyArchive = yearItems.some(item => item.archive && item.month === month)
   const periodItems = yearItems.filter(item => (month === null || item.month === month))
@@ -277,10 +303,12 @@ export default function ChronicleScene({
     (day === null || (day === -1 ? item.precision === 'month' : onDisplayDay(item, day))))
   const activeTopic = topicTags[topic]
   const items = candidates.filter(item => item.country !== activeTopic?.country || item.topicIds.includes(topic))
-  const visibleCountries = countryOrder.filter(id => !hiddenCountries.includes(id))
+  const visibleCountries = countryOrder.filter(id => countries.includes(id) && !hiddenCountries.includes(id) &&
+    (!overview || yearItems.some(item => item.country === id)))
   const visibleItems = items.filter(item => visibleCountries.includes(item.country))
   const focusCustom = hiddenCountries.length > 0 || countryOrder.some((id, index) => id !== countries[index])
-  const sceneKey = `${year}-${month}-${day}-${category}-${topic}`
+  const overviewCount = visibleCountries.reduce((count, id) => count + yearOverviews(items, id, topic).length, 0)
+  const sceneKey = `${overview ? 'overview' : 'records'}-${year}-${month}-${day}-${category}-${topic}`
   function changeMonth(value: number | null) { setMonth(value); setDay(null); setPlaying(false) }
   function changeDay(value: number | null) { setDay(value); setPlaying(false) }
   function toggleCountry(id: CountryId) {
@@ -307,7 +335,7 @@ export default function ChronicleScene({
     setCountryOrder(countries)
     setHiddenCountries([])
     setFocusOpen(false)
-  }, [year])
+  }, [year, topic])
   useEffect(() => { if (blocked) setFocusOpen(false) }, [blocked])
   useEffect(() => {
     if (!focusOpen) return
@@ -342,11 +370,11 @@ export default function ChronicleScene({
   useEffect(() => {
     const root = viewport.current
     root?.scrollTo({ top: 0, left: root.scrollLeft, behavior: 'instant' })
-  }, [year, month, day, category, topic])
+  }, [year, month, day, category, topic, overview])
   useEffect(() => {
     const root = viewport.current, header = headers.current[country]
     if (root && header) root.scrollTo({ left: Math.max(0, header.offsetLeft - 25), behavior: animated ? 'smooth' : 'instant' })
-  }, [country, year, month, day, category, topic, animated, countryOrder, hiddenCountries])
+  }, [country, year, month, day, category, topic, animated, countryOrder, hiddenCountries, overview])
   useEffect(() => {
     if (!locatedEvent || blocked) return
     const timer = setTimeout(() => {
@@ -372,13 +400,14 @@ export default function ChronicleScene({
   function stopDrag() { drag.current = null; setDragging(false) }
   return <div className="workspace">
     <YearRuler year={year} select={selectYear} animated={animated} month={month} day={day}
-      changeMonth={changeMonth} changeDay={changeDay} blocked={blocked} pause={() => setPlaying(false)} />
-    <main className="chronicle-scene" id="chronicle" aria-label={`${formatYear(year)}年各国历史事件轴${topic ? `，筛选${topicLabel(topic)}` : ''}`}>
+      changeMonth={changeMonth} changeDay={changeDay} blocked={blocked} pause={() => setPlaying(false)} overview={overview}
+      topic={topic} clearTopic={() => chooseTopic('')} showYearRecords={exploreYear} />
+    <main className="chronicle-scene" id="chronicle" aria-label={`${formatYear(year)}年${overview ? '各国分类年度大纲' : '各国历史事件轴'}${topic ? `，筛选${topicLabel(topic)}` : ''}`}>
       <Atmosphere active={animated && !blocked} theme={year === 1945 ? 'dawn' : era.theme} />
       <div className={`scene-toolbar ${focusOpen ? 'focus-open' : ''} ${topicMenuOpen ? 'topic-open' : ''}`}>
         <div className="category-area"><div className="category-filters" aria-label="事件分类">{categories.map(value => <Fragment key={value}><button
           className={category === value ? 'active' : ''} aria-pressed={category === value} onClick={() => setCategory(value)}>
-          {value === '全部' ? '全部事件' : value}{value === category && <span>{String(visibleItems.length).padStart(2, '0')}</span>}
+          {value === '全部' ? overview ? '年度大纲' : '全部事件' : value}{value === category && <span>{String(overview ? overviewCount : visibleItems.length).padStart(2, '0')}</span>}
         </button>{value === '全部' && <button ref={moreButton} className={`topic-more ${topic || topicMenuOpen ? 'active' : ''}`}
           onClick={() => { setFocusOpen(false); setTopicMenuOpen(!topicMenuOpen); setPlaying(false) }} aria-label="更多事件标签"
           aria-haspopup="dialog" aria-expanded={topicMenuOpen}><Tag size={11} />更多{topic && <i />}</button>}
@@ -386,6 +415,7 @@ export default function ChronicleScene({
             {topicLabel(topic)}<X size={11} /></button>}</Fragment>)}</div>
         {topicMenuOpen && <TopicPicker selected={topic} candidates={candidates} country={country} close={closeTopicMenu} choose={id => { chooseTopic(id); closeTopicMenu(); moreButton.current?.focus({ preventScroll: true }) }} />}</div>
         <div className="scene-tools">
+          {!overview && <button className="return-overview" onClick={() => { setCategory('全部'); changeMonth(null) }} aria-label="返回年度大纲"><BookOpen size={13} /><span>年度大纲</span></button>}
           <div className="focus-area">
             <button ref={focusButton} className={`focus-trigger ${focusOpen || focusCustom ? 'active' : ''}`}
               onClick={() => { setTopicMenuOpen(false); setPlaying(false); setFocusOpen(!focusOpen) }}
@@ -426,7 +456,7 @@ export default function ChronicleScene({
         onPointerDown={startDrag} onPointerMove={pan} onPointerUp={stopDrag} onPointerCancel={stopDrag}>
         <div className="country-axis" aria-label="同期区域">
           {visibleCountries.map(id => {
-            const count = items.filter(item => item.country === id).length
+            const count = overview ? yearOverviews(items, id, topic).length : items.filter(item => item.country === id).length
             return <motion.div key={id} layout="position" ref={node => { headers.current[id] = node }}
               transition={{ type: 'spring', stiffness: 240, damping: 29 }}
               className={`country-heading ${id === 'china' ? 'home-country' : ''} ${country === id ? 'focused-country' : ''}`} data-country={id}>
@@ -434,18 +464,19 @@ export default function ChronicleScene({
                 <span className="country-symbol">{id === 'china' ? <Landmark size={23} strokeWidth={1} /> : <Shield size={21} strokeWidth={1} />}</span>
                 <span><strong>{countryName(id, year)}</strong><small>{english[id]}</small></span>
               </button>
-              <span className="country-number" title={`${count} 条事件`}>{count}</span>
+              <span className="country-number" title={overview ? `${count}类年度概述` : `${count}条事件`}>{count}</span>
               <i className="header-pin" aria-hidden="true" />
             </motion.div>
           })}
         </div>
         <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={sceneKey} className={`event-landscape ${hasDailyArchive ? 'daily-landscape' : ''}`} data-year={year} data-month={month ?? ''} data-day={day ?? ''} data-topic={topic}
+          <motion.div key={sceneKey} className={`${overview ? 'overview-landscape' : 'event-landscape'} ${hasDailyArchive ? 'daily-landscape' : ''}`} data-year={year} data-month={month ?? ''} data-day={day ?? ''} data-topic={topic} data-view={overview ? 'overview' : 'records'}
             initial={animated ? { opacity: 0, y: 28, filter: 'blur(5px)' } : false}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: animated ? -15 : 0, filter: animated ? 'blur(4px)' : 'blur(0px)' }}
             transition={{ duration: animated ? .32 : 0 }}>
-            {visibleCountries.map((id, column) => {
+            {overview ? <AnnualOverview year={year} countries={visibleCountries} items={items} explore={exploreCategory} topic={topic}
+              exploreJanuary={() => { resetFocus(); exploreJanuary() }} openEvent={openEvent} /> : visibleCountries.map((id, column) => {
               const ordered = items.filter(item => item.country === id).sort((a, b) => dateOrder(a) - dateOrder(b))
               return <div key={id} className={`event-track ${id === 'china' ? 'china-track' : ''}`}
                 data-country={id}>
@@ -481,16 +512,16 @@ export default function ChronicleScene({
       </div>
       <div className="scene-footer">
         <div className="transport">
-          <button className="icon-button" onClick={() => selectYear(knownYears[yearIndex - 1])} disabled={yearIndex === 0} aria-label="上一个年份"><ChevronLeft size={16} /></button>
-          <span className="transport-year" aria-live="polite">{formatYear(year)}<small>{month ? `${String(month).padStart(2, '0')}${day && day > 0 ? ` / ${String(day).padStart(2, '0')}` : ''}` : year < 0 ? 'BCE' : 'CE'}</small></span>
-          <button className="icon-button" onClick={() => selectYear(knownYears[yearIndex + 1])} disabled={yearIndex === knownYears.length - 1} aria-label="下一个年份"><ChevronRight size={16} /></button>
+          <button className="icon-button" onClick={() => selectYear(navigableYears[yearIndex - 1])} disabled={yearIndex <= 0} aria-label="上一个年份"><ChevronLeft size={16} /></button>
+          <span className="transport-year" aria-live="polite">{formatYear(year)}<small>{overview ? '年度大纲' : month ? `${String(month).padStart(2, '0')}${day && day > 0 ? ` / ${String(day).padStart(2, '0')}` : ''}` : '全年详录'}</small></span>
+          <button className="icon-button" onClick={() => selectYear(navigableYears[yearIndex + 1])} disabled={yearIndex < 0 || yearIndex === navigableYears.length - 1} aria-label="下一个年份"><ChevronRight size={16} /></button>
           <span className="transport-divider" />
           <button className={`roam-button ${playing ? 'playing' : ''}`} onClick={() => setPlaying(!playing)} aria-label={playing ? '暂停时间漫游' : '开始时间漫游'} aria-pressed={playing}>
             {playing ? <Pause size={13} /> : <Play size={13} />}<span>{hasDailyArchive ? '逐日漫游' : '时间漫游'}</span>
           </button>
           {playing && !blocked && <motion.i key={`${year}-${day}`} className="roam-progress" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 5.5, ease: 'linear' }} />}
         </div>
-        <span className="scene-hint"><Move size={12} />拖动空白处或横向滚动查看国家 · 点击事件展开</span>
+        <span className="scene-hint"><Move size={12} />{overview ? '按分类对读各国 · 点击探索下钻 · 大纲末尾进入1月详录' : '拖动空白处或横向滚动查看国家 · 点击事件展开'}</span>
         <div className="world-controls">
           <button className="icon-button" aria-label="向左探索文明" onClick={() => viewport.current?.scrollBy({ left: -330, behavior: animated ? 'smooth' : 'instant' })}><ChevronLeft size={13} /></button>
           <button className="icon-button" aria-label="向右探索文明" onClick={() => viewport.current?.scrollBy({ left: 330, behavior: animated ? 'smooth' : 'instant' })}><ChevronRight size={13} /></button>

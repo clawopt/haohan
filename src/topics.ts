@@ -12,7 +12,7 @@ export interface TopicTag extends TopicDefinition {
 }
 
 const special: [string, string, string][] = [
-  ['xian-incident', '西安事变', '西安事变善后的文电、调停、驻防交涉与三方关系。'],
+  ['xian-incident', '西安事变', '1936年西安事变发生及1937年善后的文电、调停、驻防交涉与三方关系。'],
   ['united-front', '抗日统一战线', '围绕停止内战、合作抗日及红军改编的活动。'],
   ['yanan-relocation', '迁驻延安', '中央机关与人员迁往延安的行程、警卫准备及欢迎活动。'],
   ['gaotai', '高台战事', '红五军取得高台、攻守战与失守的已收录记录。'],
@@ -89,7 +89,7 @@ export function attachTopicTags(items: HistoryEvent[]) {
     add('xuzhou', /徐州|台儿庄/.test(item.title))
     add('wuhan', item.title.includes('武汉会战'))
     add('hundred-regiments', item.title.includes('百团大战'))
-    add('burma', /缅|同古|远征军|仁安羌|滇西/.test(item.title))
+    add('burma', /缅甸|缅北|滇缅|同古|远征军|仁安羌|滇西/.test(item.title))
     add('allied-conferences', /开罗会议|德黑兰会议|雅尔塔会议|波茨坦会议|大西洋宪章/.test(item.title))
     add('victory', item.year === 1945 && /投降|受降|胜利|欧洲战事结束/.test(item.title))
     add('postwar', item.year === 1949)

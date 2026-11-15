@@ -35,19 +35,20 @@ svg { flex-shrink: 0; }
 .brand-mark { height: 35px; width: 32px; display: grid; place-items: center; color: var(--accent); border: 1px solid #a08b614d; position: relative; }
 .brand-mark::after { content: ''; position: absolute; inset: 3px; border: 1px solid #a08b6123; }
 .brand-mark i { position: absolute; bottom: 4px; width: 16px; height: 1px; background: var(--accent); opacity: .5; }
-.brand-name { font: 600 25px var(--serif); color: #dfc99f; letter-spacing: 5px; line-height: 1.1; }
+.brand-name { font: 600 25px var(--serif); color: #dfc99f; letter-spacing: 5px; line-height: 1.1; margin: 0; }
 .brand-name small { display: block; color: #9b947e; font: 7px Georgia, serif; letter-spacing: 2.8px; padding-left: 2px; margin-top: 6px; }
 .brand-divider { height: 25px; width: 1px; background: #ffffff15; margin: 0 7px; }
 .brand-tagline { font: 10px var(--serif); color: #889195; letter-spacing: 2px; }
 .top-nav { display: flex; align-self: stretch; gap: 30px; margin: 0 auto; }
-.top-nav button { display: flex; gap: 9px; align-items: center; font-size: 11px; color: #8d9799; position: relative; white-space: nowrap; }
-.top-nav button:hover, .top-nav .active { color: var(--accent); }
+.top-nav button, .top-nav > a { display: flex; gap: 9px; align-items: center; font-size: 11px; color: #8d9799; position: relative; white-space: nowrap; }
+.top-nav button:hover, .top-nav > a:hover, .top-nav .active { color: var(--accent); }
 .top-nav .active::after { content: ''; position: absolute; left: 26px; right: 2px; bottom: 17px; height: 1px; background: var(--accent); box-shadow: 0 0 9px rgba(var(--accent-rgb),.35); }
 .nav-count { font: 9px Georgia, serif; padding: 3px 5px; border-radius: 3px; background: rgba(var(--accent-rgb),.09); color: var(--accent); }
 .search-trigger { width: 193px; display: flex; align-items: center; gap: 9px; padding: 9px 10px; font-size: 10px; color: #849096; border: 1px solid #ffffff12; border-radius: 3px; background: #ffffff02; }
 .search-trigger:hover { color: var(--accent); border-color: #b99f6850; }
 .search-trigger kbd { margin-left: auto; font-size: 8px; color: #79858b; }
 .icon-button { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 3px; }
+.about-archive-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 18px; font-size: 11px; color: var(--accent); }
 .icon-button:hover { color: var(--accent); background: rgba(var(--accent-rgb),.09); }
 .about-button { color: var(--accent); margin-left: -8px; }
 .workspace { display: flex; flex: 1; min-height: 0; }
@@ -66,6 +67,15 @@ svg { flex-shrink: 0; }
 .year-node time small { font: 8px var(--serif); display: inline; margin-right: 3px; vertical-align: middle; }
 .year-node:hover time { color: #d1bf9d; }
 .year-node.current time { color: #ecce99; text-shadow: 0 0 15px rgba(var(--accent-rgb),.4); }
+.year-node.topic-match:not(.current) { background: linear-gradient(90deg,#c4aa7e04,#c4aa7e12,#c4aa7e02); box-shadow: inset 0 1px #c4aa7e14,inset 0 -1px #c4aa7e14; }
+.year-node.topic-match:not(.current) time { color: #dbbd88; text-shadow: 0 0 12px #c4aa7e25; }
+.year-node.topic-match::after { content: ''; position: absolute; left: 2px; top: 12px; bottom: 12px; width: 2px; background: #c7ad7990; }
+.year-node:disabled { opacity: .3; cursor: not-allowed; }
+.year-node:disabled time, .year-node:disabled:hover time { color: #687572; text-shadow: none; }
+.year-ruler.topic-focused { padding-top: 55px; }
+.ruler-topic-note { position: absolute; top: 25px; left: 12px; right: 12px; display: flex; align-items: center; justify-content: flex-end; gap: 7px; font-size: 8px; color: #c5ac7b; }
+.ruler-topic-note button { display: grid; place-items: center; width: 16px; height: 16px; border: 1px solid #c4aa7e30; border-radius: 2px; color: #9b927a; }
+.ruler-topic-note button:hover { color: #ecd099; background: #c4aa7e0f; }
 .ruler-ticks { position: absolute; left: 9px; top: 0; height: 100%; display: flex; flex-direction: column; justify-content: space-around; }
 .ruler-ticks i { display: block; width: 6px; height: 1px; background: #91a39632; box-shadow: 0 1px #0007; }
 .ruler-ticks i:nth-child(3) { width: 15px; background: #b9b39965; }
@@ -74,9 +84,9 @@ svg { flex-shrink: 0; }
 .ruler-cursor > i { position: absolute; left: 0; width: 3px; top: 0; bottom: 0; background: linear-gradient(#d3bc91,#7c694b); box-shadow: 0 0 9px #bda27540; }
 .ruler-cursor > i:last-child { right: 0; left: auto; width: 2px; }
 .ruler-cursor b { position: absolute; right: -6px; top: 15px; width: 9px; height: 9px; transform: rotate(45deg); border-top: 1px solid #d3b77c; border-right: 1px solid #d3b77c; background: #333630; }
-.ruler-gap { height: 22px; position: relative; }
-.ruler-gap i { position: absolute; left: 9px; width: 83px; height: 1px; top: 9px; background: linear-gradient(90deg,#82928c25,transparent); transform: rotate(-7deg); }
-.ruler-gap i:last-child { top: 15px; }
+.ruler-gap { height: 0; position: relative; z-index: 1; }
+.ruler-gap i { position: absolute; left: 9px; width: 83px; height: 1px; top: -8px; background: linear-gradient(90deg,#82928c25,transparent); transform: rotate(-7deg); }
+.ruler-gap i:last-child { top: -3px; }
 .year-label { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; position: relative; }
 .ruler-selection { font: 9px/1.3 var(--sans); color: #a18d69; white-space: nowrap; }
 .year-disclosure { position: absolute; right: 10px; top: 22px; color: #bca174; transition: transform .2s; }
@@ -92,6 +102,7 @@ svg { flex-shrink: 0; }
 .date-year-all { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 11px; color: #aebdb1; border: 1px solid #91a19329; border-radius: 2px; font-size: 10px; background: #91a19305; }
 .date-year-all small { font-size: 9px; color: #7f9891; margin-left: auto; }
 .date-year-all svg { color: #849c90; }
+.date-year-all.no-count svg { margin-left: auto; }
 .date-year-all.active { border-color: #c3a77966; color: #dfc596; background: #c3a77910; }
 .ruler-day-section { overflow: hidden; margin-left: 32px; position: relative; }
 .date-month-all, .date-undated { position: relative; height: 33px; width: 100%; text-align: left; padding-left: 43px; font-size: 9px; color: #83988b; }
@@ -257,6 +268,46 @@ svg { flex-shrink: 0; }
 .quiet-period button { display: flex; align-items: center; gap: 8px; font-size: 9px; margin-top: 15px; color: var(--accent); }
 .empty-node { position: absolute; left: -26px; top: 2px; width: 7px; height: 7px; border: 1px solid #7d949150; border-radius: 50%; }
 
+/* Shared category rows keep the annual outlines aligned across countries. */
+.overview-landscape { width: max-content; min-width: 100%; padding: 0 24px 40px; }
+.annual-overview { display: grid; width: max-content; min-width: 100%; align-items: stretch; }
+.annual-preamble { grid-column: 1 / -1; padding: 18px 0 9px; }
+.annual-preamble > div { width: var(--column-width); position: sticky; left: 24px; padding: 0 28px 0 43px; }
+.annual-preamble span { font: 11px Georgia,var(--serif); color: #c2b28f; letter-spacing: 1px; }
+.annual-preamble p { display: flex; align-items: center; gap: 7px; color: #80968f; font-size: 9px; line-height: 1.8; margin: 8px 0 0; }
+.annual-slot { min-width: 0; position: relative; display: flex; padding: 19px 28px 24px 43px; }
+.annual-rail { position: absolute; left: 20px; top: 0; bottom: 0; width: 1px; background: #71878455; }
+.annual-slot.china-track .annual-rail { background: rgba(var(--accent-rgb),.4); }
+.annual-slot > .event-connector { left: 20px; top: 43px; width: 23px; }
+.annual-card { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.annual-card-body { padding: 17px 17px 14px; flex: 1; }
+.annual-card-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+.annual-card-meta > span { font: 11px Georgia,var(--serif); letter-spacing: 2px; color: var(--accent); }
+.annual-card-meta small { font-size: 8px; color: #81968f; }
+.annual-card h2 { font: 500 18px/1.7 var(--serif); letter-spacing: .6px; color: #d6d3bc; margin: 0 0 13px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.china-track .annual-card h2 { color: #e0d5b9; }
+.annual-summary { font-size: 11px; line-height: 1.95; color: #a1b1ad; margin: 0 0 18px; }
+.annual-highlights { list-style: none; padding: 0; margin: 0; border-top: 1px solid #ffffff09; }
+.annual-highlights li { border-bottom: 1px solid #ffffff09; }
+.annual-highlights a { display: block; position: relative; padding: 10px 17px 10px 0; font-size: 9px; line-height: 1.7; color: #a7b7ac; }
+.annual-highlights a:hover { color: var(--accent); }
+.annual-highlights a > span { display: block; font: 8px/1.8 Georgia,var(--serif); color: #718c87; margin-bottom: 4px; }
+.annual-highlights svg { position: absolute; right: 0; top: 25px; color: #7a948a; }
+.annual-coverage { font-size: 8px; line-height: 1.7; color: #778f86; margin: 13px 0 0; }
+.annual-card-explore { display: flex; align-items: center; justify-content: space-between; padding: 13px 17px; border-top: 1px solid #b5aa7920; color: var(--accent); background: #b5aa7905; font-size: 11px; letter-spacing: 2px; }
+.annual-card-explore:hover { background: rgba(var(--accent-rgb),.09); }
+.annual-card-explore svg { transition: transform .2s; }.annual-card-explore:hover svg { transform: translateX(3px); }
+.annual-tail { grid-column: 1 / -1; padding: 14px 0 24px; border-top: 1px solid #8b9f8514; }
+.annual-tail-inner { width: var(--column-width); position: sticky; left: 24px; padding: 0 28px 0 43px; }
+.annual-tail-mark { display: flex; align-items: center; gap: 12px; color: #9baf96; padding-top: 9px; }
+.annual-tail-mark i { width: 5px; height: 5px; border: 1px solid #9aab88; transform: rotate(45deg); }
+.annual-tail p { font-size: 10px; color: #8c9e93; line-height: 1.9; margin: 15px 0; }
+.annual-explore-all { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 16px 17px; border: 1px solid #bca67a55; background: #bca67a08; color: #d7be93; font: 14px var(--serif); letter-spacing: 2px; }
+.annual-explore-all small { display: block; margin-top: 9px; font: 9px/1.6 Georgia,var(--sans); letter-spacing: .3px; color: #91a697; }
+.annual-explore-all:hover { background: #bca67a15; border-color: #bca67a90; }
+.annual-no-records { grid-column: 1 / -1; padding: 40px 43px; color: #7c918b; font-size: 11px; }
+.date-year-options { display: grid; gap: 6px; }
+
 /* Floating archive layers. */
 .event-card { position: relative; background: linear-gradient(120deg,#273137bf,#192229f2 60%,#182026ef); border: 1px solid #92a6a31b; border-radius: 2px; box-shadow: 0 14px 27px #0005,0 3px 5px #0004,inset 0 1px #ffffff04; cursor: default; }
 .event-card::before { content: ''; position: absolute; inset: 5px -4px -5px 5px; z-index: -1; border: 1px solid #91a2930b; background: #1821268c; border-radius: 2px; }
@@ -391,17 +442,23 @@ svg { flex-shrink: 0; }
 }
 @media (max-width: 760px) {
   .date-drilldown { max-height: calc(100dvh - 89px); }
-  .topbar { padding: 0 17px; height: 65px; gap: 12px; }.brand-name { font-size: 22px; }.brand-mark { width: 29px; height: 32px; }.brand { gap: 9px; }.top-nav { gap: 16px; }.top-nav button { font-size: 9px; gap: 5px; }.search-trigger { width: 29px; padding: 5px; border: 0; }.search-trigger span,.search-trigger kbd,.about-button { display: none; }
+  .topbar { padding: 0 17px; height: 65px; gap: 12px; }.brand-name { font-size: 22px; }.brand-mark { width: 29px; height: 32px; }.brand { gap: 9px; }.top-nav { gap: 16px; }.top-nav button, .top-nav > a { font-size: 9px; gap: 5px; }.search-trigger { width: 29px; padding: 5px; border: 0; }.search-trigger span,.search-trigger kbd,.about-button { display: none; }
   .year-ruler { --ruler-width: 88px; }.year-node { padding-right: 18px; }.year-node time { font-size: 16px; }.year-disclosure { right: 5px; }.ruler-ticks { left: 5px; }.ruler-ticks i { width: 4px; }.ruler-ticks i:nth-child(3) { width: 9px; }.ruler-gap i { left: 5px; width: 60px; }
   .scene-toolbar { padding: 0 22px; }.category-filters { gap: 13px; }.category-filters button { font-size: 9px; }.scene-tools { gap: 12px; }.scene-tools > button span, .focus-trigger span { display: none; }.scene-hint { display: none; }.world-controls { margin-left: auto; }.scene-footer { padding: 0 18px; }
 }
 @media (max-width: 520px) {
+  .year-ruler.topic-focused { padding-top: 48px; }.ruler-topic-note { top: 22px; left: 5px; right: 5px; gap: 4px; font-size: 7px; }.ruler-topic-note button { width: 13px; height: 13px; }.year-node.topic-match::after { width: 1px; left: 1px; }
+  .overview-landscape { padding: 0 10px 25px; }.annual-preamble > div,.annual-tail-inner { left: 10px; padding-left: 38px; padding-right: 17px; }
+  .annual-slot { padding: 17px 17px 20px 38px; }.annual-rail { left: 16px; }.annual-slot > .event-connector { left: 16px; top: 40px; width: 22px; }
+  .annual-card-body { padding: 14px 13px 12px; }.annual-card h2 { font-size: 16px; letter-spacing: .3px; }.annual-summary { font-size: 10px; }
+  .annual-card-meta { margin-bottom: 12px; }.annual-card-meta > span { font-size: 10px; }.annual-card-meta small { font-size: 7px; }
+  .annual-card-explore { padding: 12px 13px; font-size: 10px; }.annual-explore-all { padding: 14px 13px; font-size: 13px; }
   .category-filters .topic-more { margin-left: -5px; font-size: 8px; padding: 4px; }.category-filters .topic-more svg { width: 10px; }
   .topic-picker { width: min(354px,calc(100vw - 95px)); max-width: none; padding: 12px; max-height: min(460px,calc(100dvh - 270px)); }.topic-search { padding: 8px; }.topic-search input { font-size: 10px; }.topic-options section > div { gap: 5px; }.topic-options section button { padding: 7px 5px; font-size: 9px; gap: 5px; }
   .country-focus { position: fixed; top: 116px; left: 76px; right: 8px; width: auto; max-width: none; max-height: calc(100dvh - 128px); }
   .category-filters .active-topic-filter { font-size: 8px; padding: 4px 5px; gap: 4px; }
   .date-drilldown { max-height: calc(100dvh - 85px); }.date-drilldown-body { padding: 12px 12px 15px; }.date-drilldown-top { padding: 13px 12px; }.ruler-selection { font-size: 7px; }.year-disclosure { width: 8px; right: 3px; }
-  .topbar { height: 61px; padding: 0 14px; gap: 12px; }.brand-name { font-size: 22px; letter-spacing: 4px; }.brand-name small { font-size: 6px; }.top-nav { margin: 0 0 0 auto; gap: 16px; }.top-nav button { font-size: 0; }.top-nav button.active { display: none; }.top-nav button svg { width: 17px; height: 17px; }.nav-count { font-size: 7px; position: absolute; top: 12px; right: -9px; }
+  .topbar { height: 61px; padding: 0 14px; gap: 12px; }.brand-name { font-size: 22px; letter-spacing: 4px; }.brand-name small { font-size: 6px; }.top-nav { margin: 0 0 0 auto; gap: 16px; }.top-nav button, .top-nav > a { font-size: 0; }.top-nav button.active { display: none; }.top-nav button svg, .top-nav > a svg { width: 17px; height: 17px; }.nav-count { font-size: 7px; position: absolute; top: 12px; right: -9px; }
   .year-ruler { --ruler-width: 68px; padding-top: 17px; }.chronicle-scene { --column-width: calc(100vw - 88px); }.ruler-screw { right: 11px; width: 5px; height: 5px; }.screw-top { top: 8px; }.year-node { height: 54px; padding-right: 12px; }.year-node time { font-size: 14px; letter-spacing: 0; }.year-node time small { font-size: 6px; margin-right: 1px; }.year-node:has(time small) time { font-size: 12px; }.ruler-ticks { left: 3px; }.ruler-ticks i { width: 3px; }.ruler-ticks i:nth-child(3) { width: 5px; }.ruler-gap i { width: 47px; }.ruler-cursor { inset-inline: 1px; }.ruler-cursor b { width: 6px; height: 6px; right: -4px; top: 15px; }.year-ruler::before { right: 3px; }.ruler-notch { right: 3px; width: 2px; }
   .scene-toolbar { height: 48px; padding: 0 12px; gap: 6px; }.category-filters { gap: 12px; }.category-filters button { font-size: 8px; }.category-filters button span { display: none; }.scene-tools { gap: 10px; }.scene-tools > button svg, .focus-trigger svg { width: 13px; }.country-axis { padding: 0 10px; }.country-axis::after { left: 28px; }.country-heading { height: 72px; padding-left: 13px; padding-right: 18px; }.country-select { gap: 11px; }.country-select strong { font-size: 17px; }.country-select small { font-size: 6px; letter-spacing: 1.8px; }.country-symbol svg { width: 21px; }.country-number { right: 23px; font-size: 9px; }.country-info { margin-left: 0; }.header-pin { left: 13px; }
   .event-landscape { padding: 0 10px 45px; }.event-track { padding-left: 38px; padding-right: 17px; }.track-rail { left: 16px; }.event-connector { left: -22px; width: 22px; }.offset-event .event-connector { left: -27px; width: 27px; }.event-index { left: -33px; }.offset-event .event-index { left: -38px; }
