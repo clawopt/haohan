@@ -1,0 +1,86 @@
+import type { Category, HistoryEvent } from './data'
+
+// March 1937 in the United States: steel and automobile unions win recognition,
+// the court-reorganization fight continues, and disasters and firsts mark the
+// month.
+export const usaMarchSources = {
+  marUsMarch: { name: 'Wikipedia · March 1937', url: 'https://en.wikipedia.org/wiki/March_1937' },
+  marUsYear: { name: 'Wikipedia · 1937 in the United States', url: 'https://en.wikipedia.org/wiki/1937_in_the_United_States' },
+  marUsSteel: { name: 'Wikipedia · Steel Workers Organizing Committee', url: 'https://en.wikipedia.org/wiki/Steel_Workers_Organizing_Committee' },
+  marUsFdr: { name: '罗斯福总统图书馆 · 炉边谈话', url: 'https://www.fdrlibrary.org/fireside-chats' },
+  marUsBlood: { name: '库克县卫生局 · 世界首家血库成立75周年', url: 'https://cookcountyhealth.org/press_releases/cchhs-celebrates-75th-anniversary-worlds-blood-bank/' },
+  marUsNewLondon: { name: 'Wikipedia · New London School explosion', url: 'https://en.wikipedia.org/wiki/New_London_School_explosion' },
+  marUsEarhart: { name: 'Wikipedia · Amelia Earhart', url: 'https://en.wikipedia.org/wiki/Amelia_Earhart' },
+  marUsHastie: { name: 'Wikipedia · William Henry Hastie', url: 'https://en.wikipedia.org/wiki/William_Henry_Hastie' },
+  marUsWestCoast: { name: 'Justia · West Coast Hotel Co. v. Parrish, 300 U.S. 379 (1937)', url: 'https://supreme.justia.com/cases/federal/us/300/379/' },
+}
+
+type SourceId = keyof typeof usaMarchSources
+function record(
+  id: string, day: number, category: Category, title: string, location: string,
+  summary: string, detail: string, source: SourceId, evidenceNote: string,
+  references: SourceId[] = [], actors: string[] = [],
+): HistoryEvent {
+  return {
+    id: `mar37-us-${id}`, year: 1937, month: 3, country: 'usa', day,
+    date: `1937年3月${day}日`, precision: 'day', archive: true, category, title, location, summary, detail,
+    entities: [...new Set(['usa', ...actors])], source, references, topicIds: [], evidenceNote,
+  }
+}
+
+export const usaMarchEvents: HistoryEvent[] = [
+  record('steel-agreement', 2, '经济', '钢铁工人工会与美国钢铁公司签订集体谈判协议', '美国 · 匹兹堡',
+    '钢铁工人组织委员会与美钢达成协议，工会获得谈判代表权。',
+    '3月2日，钢铁工人组织委员会（SWOC）与摩根财团控制的美国钢铁公司签订集体谈判协议，公司承认工会作为其雇员的谈判代表。这是1937年美国劳工运动的重要突破，随后其他钢铁企业也陆续与工会谈判。\n\n协议承认代表权，不等于所有工资、工时与工作条件当天已全部确定；具体合同条款仍需继续谈判。美钢的让步与同年稍后“小钢”企业的顽固抵抗形成对比。',
+    'marUsSteel',
+    'SWOC与美钢条目明确3月2日签订集体谈判协议；协议全文与具体条款未逐条核对，其他钢铁企业的谈判不写入本条。',
+    ['marUsYear'], []),
+  record('fireside-chat-court', 9, '政治', '罗斯福发表关于司法改组计划的炉边谈话', '美国 · 华盛顿',
+    '罗斯福通过广播向公众解释司法改组计划，争取支持。',
+    '3月9日，罗斯福总统发表炉边谈话，为2月5日提交国会的司法改组计划辩护。他批评最高法院阻碍新政立法，主张在年长法官不退休时增补联邦法官，使司法体系“跟上时代”。\n\n炉边谈话是总统直接动员公众的广播活动，不等于国会当天通过法案。司法改组计划在国会遭到强烈反对，最终未按原方案通过；本条只记录这次谈话及其动员作用。',
+    'marUsMarch',
+    '1937年3月事件汇编记3月9日炉边谈话；罗斯福图书馆用于核对炉边谈话形式与年代，谈话全文未逐字校读。',
+    ['marUsFdr'], ['roosevelt']),
+  record('first-blood-bank', 15, '社会', '芝加哥库克县医院开设美国首家血库', '美国 · 芝加哥',
+    '范图斯医生在库克县医院建立可储存血液的“血库”。',
+    '3月15日，伯纳德·范图斯医生在芝加哥库克县医院建立美国首家血库，最初称为“血液保存实验室”。血库使血液可以短期保存并按需输用，减少了过去临时寻找供血者的风险。\n\n这是输血医学的制度与技术节点，不等于输血当天已经安全无风险。血型、保存期限与交叉配血技术在此前后逐步完善；血库首年完成的输血数量见院方资料。',
+    'marUsBlood',
+    '库克县卫生局资料明确3月15日、范图斯医生与“世界首家血库”表述；早期血库的保存技术与首年输血量见同一资料，未核对当时病历。',
+    [], []),
+  record('atherton-report', 17, '政治', '阿瑟顿报告揭露旧金山警察腐败', '美国 · 旧金山',
+    '私人调查员阿瑟顿公布报告，详细记录旧金山警察与卖淫、赌博网络的关系。',
+    '3月17日，私人调查员埃德温·阿瑟顿关于旧金山风化与警察腐败的报告公布。报告详细描述警察向卖淫、赌博场所收取保护费，以及市政机构与犯罪网络的关系。\n\n报告引发旧金山政治震动，并推动后续调查与改革。报告中的具体指控属于调查结论，须与法院判决和行政处理区分；本条只记报告公布及其内容性质。',
+    'marUsYear',
+    '1937年美国条目记3月17日阿瑟顿报告公布；报告原文与旧金山市政档案未逐页核对。',
+    [], []),
+  record('new-london-explosion', 18, '社会', '新伦敦学校天然气爆炸', '美国 · 得克萨斯州新伦敦',
+    '学校积聚的天然气爆炸，至少295名学生与教师死亡。',
+    '3月18日，得克萨斯州新伦敦学校发生天然气爆炸。学校校舍下方积聚的天然气被点燃，建筑几乎被完全摧毁，至少295名学生和教师死亡。这是美国历史上死亡人数最多的学校灾难。\n\n爆炸促使得州及美国各地加强对天然气加臭、管道安全与学校建筑安全的监管。事故原因与责任在后续调查中有详细记录；本条只记灾难本身与死亡人数范围。',
+    'marUsNewLondon',
+    '新伦敦学校爆炸条目记3月18日、至少295人死亡；伤亡统计在不同资料中有差异，本条取“至少295人”的谨慎表述。',
+    ['marUsMarch'], []),
+  record('earhart-honolulu-crash', 20, '文化', '埃尔哈特环球飞行首段在檀香山失败', '美国 · 夏威夷檀香山',
+    '埃尔哈特在檀香山起飞时飞机失事起火，她与两名乘客未受伤。',
+    '3月20日，阿梅莉亚·埃尔哈特在夏威夷檀香山尝试起飞继续环球飞行时，飞机失事并起火。埃尔哈特与两名乘客逃出，未受重伤。此前她于3月17日从加州奥克兰出发，开始首次环球飞行尝试。\n\n这次失败使首次尝试中止，飞机后来被运回美国修理。埃尔哈特于同年6月再次出发，7月2日在太平洋上空失踪；本条只记3月20日的起飞失败。',
+    'marUsMarch',
+    '1937年3月事件汇编记3月20日檀香山起飞失败与起火；埃尔哈特条目用于核对首次尝试的时间线，事故调查原文未读。',
+    ['marUsEarhart'], []),
+  record('chrysler-strike', 24, '经济', '克莱斯勒六万工人结束静坐罢工', '美国 · 密歇根州底特律',
+    '持续17天的克莱斯勒罢工在达成临时协议后结束。',
+    '3月24日，约六万名克莱斯勒汽车公司工人结束持续17天的静坐罢工。罢工工人与公司在工会代表权与工作条件上达成临时协议，具体合同仍在谈判中。\n\n克莱斯勒罢工是1937年汽车工业工会化浪潮的一部分，发生在通用汽车弗林特罢工之后。临时协议不等于最终合同已经签订；工人返厂与后续谈判须分别理解。',
+    'marUsMarch',
+    '1937年3月事件汇编记3月24日六万克莱斯勒工人结束17天罢工与临时协议；合同条款与最终签订日期未核对。',
+    [], ['uaw']),
+  record('hastie-appointment', 26, '政治', '威廉·哈斯蒂被任命为联邦法官', '美国 · 华盛顿',
+    '哈斯蒂成为首位被任命为联邦法官的非裔美国人。',
+    '3月26日，威廉·亨利·哈斯蒂被任命为联邦法官，成为美国历史上首位担任联邦法官的非裔美国人。他当时担任内政部法律顾问，后来在民权诉讼与法学教育中继续发挥作用。\n\n这一任命是种族隔离时代联邦司法体系中的突破，但不等于司法系统已经实现平等。哈斯蒂的任期、后续案件与当时种族隔离制度须分别理解。',
+    'marUsYear',
+    '1937年美国条目记3月26日哈斯蒂成为首位非裔联邦法官；任命文件与参议院确认记录未逐条核对。',
+    ['marUsHastie'], []),
+  record('west-coast-hotel', 29, '经济', '最高法院支持华盛顿州最低工资法', '美国 · 华盛顿',
+    '最高法院在西海岸酒店诉帕里什案中以5比4支持州最低工资法。',
+    '3月29日，美国最高法院以5比4判决西海岸酒店公司诉帕里什案，支持华盛顿州为妇女和未成年人规定最低工资的法律。判决推翻了1923年阿德金斯案中否定最低工资法的先例。\n\n该判决被视为最高法院转向支持新政经济立法的标志之一，与罗斯福司法改组计划的压力同时出现。判决支持州最低工资立法，不等于所有行业的工资与工时当天已经统一；具体适用范围须据判决与州法。',
+    'marUsWestCoast',
+    'Justia判决页记3月29日、5比4与多数意见由休斯撰写；判决全文未逐页校读，阿德金斯案的关系见判决正文。',
+    [], ['us-supreme-court']),
+]

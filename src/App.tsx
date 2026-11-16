@@ -267,7 +267,7 @@ export default function App() {
     setPlaying(false); setLocatedEvent(null)
   }
   function exploreJanuary() {
-    selectMonth(1); setCategory('全部'); setCountry(topicTags[topic]?.country ?? 'china'); setPlaying(false)
+    selectMonth(firstMonthFor(year, '全部', topic)); setCategory('全部'); setCountry(topicTags[topic]?.country ?? 'china'); setPlaying(false)
   }
   function exploreYear() {
     setView('records'); setMonth(firstMonthFor(year, category, topic)); setDay(null); setMonthPinned(false); setPlaying(false); setLocatedEvent(null)

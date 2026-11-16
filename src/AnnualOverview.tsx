@@ -13,6 +13,7 @@ export default function AnnualOverview({ year, countries, items, explore, explor
   const outlines = Object.fromEntries(countries.map(id => [id, yearOverviews(items, id, topic)]))
   const rows = overviewCategories.filter(category => countries.some(id => outlines[id].some(item => item.category === category)))
   const topicQuery = topic ? `&topic=${encodeURIComponent(topic)}` : ''
+  const firstMonth = items.length ? Math.min(...items.map(item => item.month)) : 1
   return <div className="annual-overview" data-view="overview" data-year={year}
     style={{ gridTemplateColumns: `repeat(${countries.length}, var(--column-width))` }}>
     <div className="annual-preamble"><div><span>{formatYear(year)}年 / 年度大事记</span><p>只记这一年的关键事件，按分类对读各国。<ArrowDown size={12} /></p></div></div>
@@ -43,9 +44,9 @@ export default function AnnualOverview({ year, countries, items, explore, explor
     </Fragment>)}
     {!rows.length && <div className="annual-no-records"><p>当前筛选条件下暂无年度大事记。</p></div>}
     <div className="annual-tail"><div className="annual-tail-inner">
-      <a className="annual-explore-all" href={archiveHref(`/?year=${year}&month=1${topicQuery}`)} onClick={event => {
+      <a className="annual-explore-all" href={archiveHref(`/?year=${year}&month=${firstMonth}${topicQuery}`)} onClick={event => {
         if (isPlainClick(event)) { event.preventDefault(); exploreJanuary() }
-      }}><span>详细探索<small>{formatYear(year)}年1月 · {topic ? '当前专题' : '全部记录'}</small></span><ArrowRight size={19} /></a>
+      }}><span>详细探索<small>{formatYear(year)}年{firstMonth}月 · {topic ? '当前专题' : '全部记录'}</small></span><ArrowRight size={19} /></a>
     </div></div>
   </div>
 }

@@ -1,0 +1,88 @@
+import type { Category, HistoryEvent } from './data'
+
+// April 1937 in the United States: the Supreme Court upholds the Wagner Act,
+// social security begins paying out, and labor, animation and engineering
+// mark the month.
+export const usaAprilSources = {
+  aprUsApril: { name: 'Wikipedia · April 1937', url: 'https://en.wikipedia.org/wiki/April_1937' },
+  aprUsYear: { name: 'Wikipedia · 1937 in the United States', url: 'https://en.wikipedia.org/wiki/1937_in_the_United_States' },
+  aprUsHershey: { name: 'Wikipedia · Pennsylvania chocolate workers’ strike, 1937', url: 'https://en.wikipedia.org/wiki/Pennsylvania_chocolate_workers%27_strike%2C_1937' },
+  aprUsNlrb: { name: 'Justia · NLRB v. Jones & Laughlin Steel Corp., 301 U.S. 1 (1937)', url: 'https://supreme.justia.com/cases/federal/us/301/1/' },
+  aprUsBabes: { name: 'Wikipedia · Babes in Arms', url: 'https://en.wikipedia.org/wiki/Babes_in_Arms' },
+  aprUsDaffy: { name: 'Wikipedia · Porky’s Duck Hunt', url: 'https://en.wikipedia.org/wiki/Porky%27s_Duck_Hunt' },
+  aprUsGoldenGate: { name: '金门大桥公路与交通区 · 大桥建设史', url: 'https://www.goldengate.org/bridge/history-research/bridge-construction/construction/' },
+  aprUsRemington: { name: 'Wikipedia · Remington Rand strike of 1936–37', url: 'https://en.wikipedia.org/wiki/Remington_Rand_strike_of_1936%E2%80%9337' },
+  aprUsSsa: { name: '美国社会保障署 · 社会保障金首次发放', url: 'https://www.ssa.gov/history/1930.html' },
+  aprUsCarothers: { name: 'Wikipedia · Wallace Carothers', url: 'https://en.wikipedia.org/wiki/Wallace_Carothers' },
+}
+
+type SourceId = keyof typeof usaAprilSources
+function record(
+  id: string, day: number, category: Category, title: string, location: string,
+  summary: string, detail: string, source: SourceId, evidenceNote: string,
+  references: SourceId[] = [], actors: string[] = [], extra: Partial<HistoryEvent> = {},
+): HistoryEvent {
+  return {
+    id: `apr37-us-${id}`, year: 1937, month: 4, country: 'usa', day,
+    date: `1937年4月${day}日`, precision: 'day', archive: true, category, title, location, summary, detail,
+    entities: [...new Set(['usa', ...actors])], source, references, topicIds: [], evidenceNote,
+    ...extra,
+  }
+}
+
+export const usaAprilEvents: HistoryEvent[] = [
+  record('hershey-strike', 2, '经济', '好时巧克力工厂工人开始静坐罢工', '美国 · 宾夕法尼亚州赫尔希',
+    '好时巧克力公司工人占据工厂，要求承认工会与改善条件。',
+    '4月2日，宾夕法尼亚州赫尔希巧克力公司工人开始静坐罢工，占据工厂并要求承认工会、改善工资与工作条件。罢工持续到4月7日，公司方面拒绝承认工会，最终由警方强制清场，罢工结束。\n\n好时罢工是1937年静坐罢工浪潮的一部分，发生在大规模产业工会化扩张的背景下。罢工被清场结束，不等于工人的诉求已经解决；具体工资、工时与工会承认问题须另据劳动关系记录。',
+    'aprUsHershey',
+    '好时罢工条目记4月2日开始、4月7日被强制清场结束；罢工规模与具体诉求未逐条核对。',
+    ['aprUsApril'], [], { precision: 'range', endDay: 7, date: '1937年4月2日—7日' }),
+  record('navy-plane-collision', 6, '军事', '两架海军轰炸机在加州外海相撞', '美国 · 加州外海',
+    '两架美国海军轰炸机在演习中相撞，四名飞行员死亡。',
+    '4月6日，两架美国海军轰炸机在加利福尼亚外海进行演习时相撞，四名飞行员死亡。飞机坠入海中，海军随后展开搜救与事故调查。\n\n这是战前美国海军训练事故之一，不属于与外国军队的交战。事故原因、机型与所属中队须据海军调查记录；本条只记碰撞与死亡人数。',
+    'aprUsApril',
+    '1937年4月事件汇编引《芝加哥论坛报》4月7日报道，记两架海军轰炸机相撞、四人死亡；海军事故调查报告未核对。',
+    [], ['us-navy']),
+  record('nlrb-jones-laughlin', 12, '政治', '最高法院支持《全国劳工关系法》', '美国 · 华盛顿',
+    '最高法院在 NLRB 诉琼斯-劳克林钢铁公司案中认定《全国劳工关系法》合宪。',
+    '4月12日，美国最高法院对 NLRB 诉琼斯-劳克林钢铁公司案作出判决，认定1935年《全国劳工关系法》（瓦格纳法）合宪，联邦政府有权规范跨州工业企业中的劳资关系。判决支持工会的组织与集体谈判权，被视为新政劳工立法的重大胜利。\n\n判决解决了瓦格纳法的合宪性争议，不等于所有雇主当天停止反对工会；后续的工会选举、合同谈判与雇主上诉仍在继续。具体判决理由与适用范围须据判决书。',
+    'aprUsNlrb',
+    'Justia判决页记4月12日与判决结果；判决全文未逐页校读，瓦格纳法条款与后续案件未展开。',
+    ['aprUsApril'], ['us-supreme-court']),
+  record('babes-in-arms', 14, '文化', '《Babes in Arms》在百老汇首演', '美国 · 纽约 · 舒伯特剧院',
+    '罗杰斯与哈特合作的音乐喜剧在百老汇开幕，并产生多首标准曲。',
+    '4月14日，理查德·罗杰斯与洛伦兹·哈特合作的音乐喜剧《Babes in Arms》在纽约舒伯特剧院首演。剧作由一群青年演员演出，包含《My Funny Valentine》《The Lady Is a Tramp》等后来广为流传的歌曲。\n\n首演是百老汇演出史上的文化节点，不等于这些歌曲当天已经成为流行标准。演出场次、演员阵容与评论反应须据百老汇档案；本条只记首演。',
+    'aprUsBabes',
+    '《Babes in Arms》条目记4月14日舒伯特剧院首演与主要歌曲；首演节目单与剧评未逐条核对。',
+    ['aprUsApril'], [], {}),
+  record('daffy-duck-debut', 17, '文化', '《Porky’s Duck Hunt》上映，达菲鸭首次登场', '美国',
+    '特克斯·艾弗里执导的动画短片上映，达菲鸭首次出现。',
+    '4月17日，由特克斯·艾弗里执导的《Porky’s Duck Hunt》上映，达菲鸭在片中首次登场。这部短片是《乐一通》系列的一部分，以夸张的动作与声音表演推动美国动画喜剧的发展。\n\n达菲鸭的首秀是动画角色史的节点，不等于角色形象当天已经定型；其造型、性格与配音在此后多部短片中不断变化。',
+    'aprUsDaffy',
+    '《Porky’s Duck Hunt》条目记4月17日上映与达菲鸭首次登场；影片原片与发行记录未逐条核对。',
+    ['aprUsApril'], [], {}),
+  record('golden-gate-completed', 19, '社会', '金门大桥主体工程完工', '美国 · 加州旧金山',
+    '金门大桥完成主体施工，为5月通车做准备。',
+    '4月19日，金门大桥完成主体工程。大桥横跨金门海峡，连接旧金山与马林县，是当时世界上最长的悬索桥之一。主体完工后，桥面铺装、交通设施与通车准备继续进行，大桥于5月27日向行人开放。\n\n主体完工不等于当天已经通车；5月27日的行人开放与5月28日的车辆通行须分别记录。工程死亡人数、造价与技术细节见大桥官方建设史。',
+    'aprUsGoldenGate',
+    '金门大桥官方建设史记4月19日主体工程完工、5月27日开放；具体施工节点与死亡人数见同一资料，未核对工程总报告。',
+    ['aprUsApril'], [], {}),
+  record('remington-rand-settlement', 21, '经济', '雷明顿兰德罢工结束', '美国 · 纽约州',
+    '工会成员批准和解方案，持续数月的雷明顿兰德罢工结束。',
+    '4月21日，雷明顿兰德公司罢工工人批准和解方案，罢工结束，工人获准返回岗位。罢工从1936年5月开始，围绕工会承认、工资与工作条件展开；国家劳工关系委员会在此前裁定公司存在破坏工会的行为。\n\n和解结束罢工，不等于所有争议已经解决；工会承认与合同条款仍须继续执行。具体方案内容、复工人数与后续诉讼须据公司记录与工会文件。',
+    'aprUsRemington',
+    'Remington Rand罢工条目记4月21日工会批准和解、罢工结束；和解条款与复工人数未逐条核对。',
+    ['aprUsApril'], [], {}),
+  record('social-security-payments', 27, '社会', '美国首次发放社会保障金', '美国 · 全国',
+    '根据1935年《社会保障法》，美国开始向符合条件的工人发放退休金。',
+    '4月27日，美国根据1935年《社会保障法》首次发放社会保障金。第一批款项主要发给已退休的工人，标志着联邦老年保险制度从立法进入实际支付阶段。\n\n首次支付是制度实施的节点，不等于社会保障已经覆盖所有劳动者；当时的资格、缴费与受益范围有限，后续修正案逐步扩大覆盖。具体领取人数与金额须据社会保障署记录。',
+    'aprUsSsa',
+    '美国社会保障署历史页记1937年4月首次发放；1935年法案与后续修正案的关系见社保署资料，首次支付的具体人数未逐条核对。',
+    ['aprUsApril'], ['roosevelt']),
+  record('carothers-death', 29, '文化', '尼龙发明者卡罗瑟斯去世', '美国 · 特拉华州威尔明顿',
+    '杜邦公司化学家华莱士·卡罗瑟斯去世，年仅41岁。',
+    '4月29日，杜邦公司化学家华莱士·卡罗瑟斯去世，年仅41岁。他主持研发了氯丁橡胶与尼龙等合成高分子材料，尼龙专利于1937年2月获得授权，但大规模商业化要在此后几年才实现。\n\n卡罗瑟斯的去世是科学与工业史上的节点，不等于尼龙研发当天停止；杜邦团队继续推进中试与生产。其死因与个人经历在资料中有不同表述，本条不展开。',
+    'aprUsCarothers',
+    '卡罗瑟斯条目记4月29日去世与尼龙研发经历；尼龙专利授权见2月记录，死因与个人生活细节未展开。',
+    ['aprUsApril'], [], {}),
+]

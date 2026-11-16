@@ -1,5 +1,19 @@
 import { januaryEntities, januaryEvents, januarySources } from './january1937'
 import { februaryEvents, februarySources } from './february1937'
+import { marchEvents, marchSources } from './march1937'
+import { aprilEvents, aprilSources } from './april1937'
+import { mayEvents, maySources } from './may1937'
+import { juneEvents, juneSources } from './june1937'
+import { julyEvents, julySources } from './july1937'
+import { augustEvents, augustSources } from './august1937'
+import { septemberEvents, septemberSources } from './september1937'
+import { octoberEvents, octoberSources } from './october1937'
+import { novemberEvents, novemberSources } from './november1937'
+import { decemberEvents, decemberSources } from './december1937'
+import { december1936Events, december1936Sources } from './december1936'
+import { november1936Events, november1936Sources } from './november1936'
+import { october1936Events, october1936Sources } from './october1936'
+import { september1936Events, september1936Sources } from './september1936'
 import { attachTopicTags } from './topics'
 import { biographySources, personProfiles } from './personProfiles'
 import { personBiographies, personBiographyReferences, personBiographySources } from './personBiographies'
@@ -62,6 +76,20 @@ export interface Era {
 export const sources: Record<string, { name: string; url: string }> = {
   ...januarySources,
   ...februarySources,
+  ...marchSources,
+  ...aprilSources,
+  ...maySources,
+  ...juneSources,
+  ...julySources,
+  ...augustSources,
+  ...septemberSources,
+  ...octoberSources,
+  ...novemberSources,
+  ...decemberSources,
+  ...december1936Sources,
+  ...november1936Sources,
+  ...october1936Sources,
+  ...september1936Sources,
   ...biographySources,
   ...personBiographySources,
   ...januaryPeopleSources,
@@ -237,7 +265,7 @@ export const eras: Era[] = [
   { id: 'ming', name: '明', range: '1368—1644', year: 1368, theme: 'gold', title: '重整山河，帆向远洋。', subtitle: '新的王朝制度与海上航路，续写中国和世界的交往。', world: ['china', 'ottoman', 'rome'] },
   { id: 'qing', name: '清', range: '1644—1912', year: 1644, theme: 'earth', title: '帝国余晖，风云渐起。', subtitle: '辽阔帝国走入近代，面对不断变化的世界秩序。', world: ['china', 'ottoman', 'britain', 'france'] },
   { id: 'roc', name: '民国', range: '1912—1949（大陆时期）', year: 1912, theme: 'jade', title: '旧制落幕，新途未明。', subtitle: '共和理想与现实动荡，在世纪之交寻找新的道路。', world: ['china', 'japan', 'britain', 'usa', 'germany'] },
-  { id: 'prelude1936', name: '西安事变', range: '1936年', year: 1936, theme: 'war', title: '停止内战，共同抗日。', subtitle: '1936年西安事变的起始节点，与1937年善后记录衔接。', world: ['china'] },
+  { id: 'prelude1936', name: '西安事变', range: '1936年', year: 1936, theme: 'war', title: '停止内战，共同抗日。', subtitle: '1936年西安事变的起始节点，与1937年善后记录衔接。', world: ['china', 'japan', 'korea', 'usa', 'ussr', 'germany', 'britain', 'france'] },
   { id: 'war', name: '全面抗战', range: '1937—1945', year: 1937, theme: 'war', title: '山河破碎，烽火未息。', subtitle: '从卢沟桥的枪声到胜利的曙光，中国与世界的命运在此交汇。', world: ['china', 'japan', 'usa', 'ussr', 'germany', 'britain', 'france'] },
   { id: 'prc', name: '新中国成立', range: '1949年10月1日', year: 1949, theme: 'dawn', title: '长夜已尽，山河新生。', subtitle: '历史翻开新的篇章，中华人民共和国宣告成立。', world: ['china', 'ussr', 'usa', 'britain', 'france'] },
 ]
@@ -258,6 +286,10 @@ const ev = (year: number, country: CountryId, month: number, date: string, title
   topicIds: extra.topicIds ?? [],
 })
 export const events: HistoryEvent[] = [
+  ...september1936Events,
+  ...october1936Events,
+  ...november1936Events,
+  ...december1936Events,
   ev(1936, 'china', 12, '1936年12月12日', '西安事变发生', '张学良、杨虎城发动兵谏，提出停止内战、一致抗日等主张。',
     '1936年12月12日，[[zhangxueliang|张学良]]、[[yanghucheng|杨虎城]]扣留了来西安督促“剿共”的[[chiang|蒋介石]]，并通电全国，提出停止内战、一致抗日等八项主张。事变此后进入政治交涉和谈判阶段。\n\n本条记录事变发生的起始日。1937年关于西安善后的文电、调停与驻防交涉在各自发生的年份另行收录，不把善后日期改写为事变发生日。',
     '政治', ['zhangxueliang', 'yanghucheng', 'chiang'], 'xianOrigin', {
@@ -267,6 +299,16 @@ export const events: HistoryEvent[] = [
     }),
   ...januaryEvents,
   ...februaryEvents,
+  ...marchEvents,
+  ...aprilEvents,
+  ...mayEvents,
+  ...juneEvents,
+  ...julyEvents,
+  ...augustEvents,
+  ...septemberEvents,
+  ...octoberEvents,
+  ...novemberEvents,
+  ...decemberEvents,
   ev(1937, 'china', 7, '1937年7月7日', '卢沟桥事变', '一声枪响，全面抗战由此开始。', '[[japan|日本]]侵略军在北平西南卢沟桥附近借军事演习挑衅，以士兵失踪为借口要求进入宛平城搜查，随后发动进攻。中国守军奋起抵抗。卢沟桥事变又称七七事变，标志着全国性抗战的开始。此前，中国人民自1931年九一八事变起已开展局部抗战。', '战役', ['roc'], 'china', { image: 'bridge', featured: true }),
   ev(1937, 'china', 7, '1937年7月17日', '庐山谈话：表明抗战立场', '“地无分南北，年无分老幼。”', '[[chiang|蒋介石]]在庐山发表谈话，强调一旦战端开启，无论地域、年龄，均有守土抗战之责。谈话是在卢沟桥事变后中国社会要求全面抵抗侵略的背景下发表的，成为国民政府抗战立场的重要公开表达。', '政治', ['chiang', 'roc'], 'chronicle'),
   ev(1937, 'china', 8, '1937年8月13日—11月12日', '淞沪会战', '上海浴血三个月，打破速胜幻想。', '[[roc|国民政府]]在上海及周边地区组织大规模防御作战。中国军队与[[japan|日军]]展开持续约三个月的激战，最终中国军队撤退、上海沦陷。会战付出巨大牺牲，延缓了日军进攻，也为内地迁厂、迁校与持久抵抗争取时间。', '战役', ['roc', 'chiang'], 'chronicle', { image: 'shanghai' }),
@@ -430,7 +472,7 @@ export const events: HistoryEvent[] = [
 ]
 
 for (const item of events) {
-  if (item.year !== 1937 || (item.month !== 1 && item.month !== 2)) continue
+  if (item.year !== 1937) continue
   const mentioned = [item.title, item.summary, item.detail].flatMap(text => personTextParts(text)
     .flatMap(part => part.personId ? [part.personId] : []))
   item.entities = [...new Set([...item.entities, ...mentioned])]
